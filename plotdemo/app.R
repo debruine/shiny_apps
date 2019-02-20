@@ -16,7 +16,8 @@ ui <- dashboardPage(
     sliderInput("group_effect", "Group Main Effect", min = -2, max = 2, step = 0.1, value = 0),
     sliderInput("stim_effect", "Task Main Effect", min = -2, max = 2, step = 0.1, value = 0),
     sliderInput("ixn", "Group x Task Interaction", min = -2, max = 2, step = 0.1, value = 0.5),
-    actionButton("rerun", "Re-run Simulation")
+    actionButton("rerun", "Re-run Simulation"),
+    tags$a(href="https://github.com/debruine/shiny/tree/master/plotdemo", "Shiny App Code on GitHub")
   ),
   dashboardBody(
     p("This app simulates data from two groups on two tasks. You can set the size of the 
