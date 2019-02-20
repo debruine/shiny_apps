@@ -5,3 +5,7 @@
 *.Rproj
 */responses/
 */responses/*
+*/*.DS_Store
+*/._*
+*/*/*.DS_Store
+*/*/._*
