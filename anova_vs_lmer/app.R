@@ -67,7 +67,8 @@ ui <- dashboardPage(
         sliderInput("error_sd", "Residual (error) SD:", min = 0, max = 2, value = 1.10, step = 0.05),
         sliderInput("stim_type_sd", "Subject slope (stim type):", 
                     min = 0, max = 2, value = 0.50, step = 0.05)
-      )
+      ),
+     tags$a(href="https://github.com/debruine/shiny/tree/master/anova_vs_lmer", "Code for this app")
     )
   ),
   dashboardBody(

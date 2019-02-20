@@ -3,8 +3,7 @@ main_tab <- tabItem(
   tabName = "main_tab",
   h3("Instructions"),
   p("Set the parameters in the sidebar menu for a face rating task where people (subjects) rate faces (stimuli) of each of two types (A and B). The dependent variable (DV) is rating (1-7)."),
-  p("The simulation defaults to an effect for stimulus type of 0.5 (a half-point difference between stimuli of type A and B) and random effects with the same SDs as the open data from the Face Research London Set. You can change these defaults under the Fixed Effects or Random Effects tab."),
-  tags$a(href="https://figshare.com/articles/Face_Research_Lab_London_Set/5047666", "Face Research London Set on Figshare"),
+  HTML("<p>The simulation defaults to an effect for stimulus type of 0.5 (a half-point difference between stimuli of type A and B) and random effects with the same SDs as the open data from the <a href='https://figshare.com/articles/Face_Research_Lab_London_Set/5047666'>Face Research London Set</a>. You can change these defaults under the Fixed Effects or Random Effects tab.</p>"),
   h3("Compare False Positive Rate and Power"),
   p("This function will run the set number of simulations with the parameters you've set and report the proportion of runs that gave a significant effect of stimulus type (given the alpha you set). It will also report the false positive rate for the same simulations with the main effect of stimulus type set to 0. If you set the main effect of stimulus type to 0, then power will be equal to the false positive rate."),
   fluidRow(
