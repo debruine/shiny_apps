@@ -1,0 +1,18 @@
+---
+title: "Survery Results"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r, message=FALSE}
+
+# Read all the files into a list
+data <- list.files("responses", full.names = TRUE) %>%
+  lapply(read_csv) %>%
+  do.call(bind_rows, .)
+
+```
+
