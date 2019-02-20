@@ -35,13 +35,11 @@ ui <- dashboardPage(
           p("A violin plot with a boxplot superimposed"), width = 4),
       box(title="Split Violin Plot", plotOutput("splitviolin", height = 250), 
           p("Each half of the violin is a distribution"), 
-          a("Split-violin code", href="https://debruine.github.io/plot_comparison.html"), width = 4), 
+          a("Split-violin code", href="https://debruine.github.io/posts/plot-comparison/"), width = 4), 
       box(title="Raincloud Plot", plotOutput("raincloud", height = 250), 
           p("Shapes represent distributions and rain is individual data points"), 
           a("Code from Micah Allen", href="https://micahallen.org/2018/03/15/introducing-raincloud-plots/"), width = 4)
     )
-    #   )
-    # )
   )
 )
 
