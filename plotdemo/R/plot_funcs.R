@@ -50,7 +50,7 @@ plot_violin <- function(data) {
     geom_hline(yintercept=0, color=textcolor, size=1) +
     geom_violin(color=textcolor, trim=FALSE, alpha = 0.75) +
     geom_pointrange(
-      data = summary_data,
+      data = makeSummaryData(data),
       aes(group, mean, ymin=min, ymax=max),
       shape = 20,
       color = textcolor, 
@@ -78,7 +78,7 @@ plot_splitviolin <- function(data) {
     geom_hline(yintercept=0, color=textcolor, size=1) +
     geom_split_violin(color=textcolor, trim=FALSE, alpha = 0.75) +
     geom_pointrange(
-      data = summary_data,
+      data = makeSummaryData(data),
       aes(group, mean, ymin=min, ymax=max),
       shape = 20,
       color = textcolor, 
