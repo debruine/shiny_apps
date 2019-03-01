@@ -136,6 +136,7 @@ rnorm_multi <- function(n, vars = 3, cors = 0, mu = 0, sd = 1,
 
 cohen_d <- function(x, y, paired = TRUE) {
   # https://t.co/GmRX4y7gCl
+  # adapted from https://github.com/Lakens/anchor_based_methods_SESOI/blob/master/effect_size_d_paired_function.R
   
   m_diff <- mean(y-x) # mean difference
   sd1 <- sd(x) #standard deviation of measurement 1
