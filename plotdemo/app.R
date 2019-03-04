@@ -47,7 +47,6 @@ server <- function(input, output, session) {
   #addClass(selector = "body", class = "sidebar-collapse")
   
   data <- reactive({
-    print("data()")
     input$rerun
     
     makeData(input$n, input$group_effect, input$stim_effect, input$ixn)
