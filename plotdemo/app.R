@@ -23,7 +23,7 @@ ui <- dashboardPage(
     p("This app simulates data from two groups on two tasks. You can set the size of the 
        group and task main effects and the group-by-task interaction in the sidebar 
        (in the menu if minimised)."),
-    a("Tutorial with code", href="https://debruine.github.io/posts/plot-comparison.html"),
+    a("Tutorial with code", href="https://debruine.github.io/posts/plot-comparison/"),
     fluidRow(
       box(title="Bar Plot", plotOutput("barplot", height = 250), 
           p("Bars represent means and standard errors"), width = 4),
@@ -50,10 +50,6 @@ server <- function(input, output, session) {
     input$rerun
     
     makeData(input$n, input$group_effect, input$stim_effect, input$ixn)
-  })
-  
-  summary_data <- reactive({
-    makeSummaryData(data())
   })
   
   output$barplot <- renderPlot({
