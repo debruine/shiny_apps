@@ -60,7 +60,8 @@ ui <- fluidPage(
                        height = "200px"),
          sliderInput("minWord", "Omit words that occur less than", 1, 20, 3),
          sliderInput("topWords", "Maximum number of words to include", 1, 100, 100),
-         sliderInput("maxTextSize", "Maximum text size", 10, 100, 30),
+         sliderInput("maxTextSize", "Maximum text size", 10, 100, 40),
+         sliderInput("plotHeight", "Aspect Ratio 1:", 0.5, 2, 1, .05),
          selectInput("colourScheme", "Colour Scheme", 
                      list(
                        "Default" = 1,
@@ -82,8 +83,8 @@ ui <- fluidPage(
    )
 )
 
-# Define server logic required to draw a histogram
-server <- function(input, output) {
+# Define server logic required to draw the wordcloud
+server <- function(input, output, session) {
    
    output$wordCloudPlot <- renderPlot({
      # process the text
@@ -121,7 +122,11 @@ server <- function(input, output) {
      }
      
      thePlot
-   }, width = "auto", height = "auto")
+   }, 
+   width = "auto", 
+   height = function() {
+     session$clientData$output_wordCloudPlot_width*input$plotHeight
+   })
 }
 
 # Run the application 
