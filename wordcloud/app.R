@@ -8,7 +8,7 @@
 #
 
 library(shiny)
-#library(tidytext) # for transforming text
+library(tidytext) # for transforming text
 library(dplyr) # for data wrangling 
 library(ggwordcloud) # to render wordclouds
 
@@ -60,6 +60,7 @@ ui <- fluidPage(
                        height = "200px"),
          sliderInput("minWord", "Omit words that occur less than", 1, 20, 3),
          sliderInput("topWords", "Maximum number of words to include", 1, 100, 100),
+         sliderInput("maxTextSize", "Maximum text size", 10, 100, 30),
          selectInput("colourScheme", "Colour Scheme", 
                      list(
                        "Default" = 1,
@@ -90,10 +91,9 @@ server <- function(input, output) {
      
      # this is better than the next two lines, but requires tidytext, 
      #   which isn't installed on our shiny server
-     #word_table <- unnest_tokens(text_table, "word", "text") %>%
-     
-     words <- input$theText %>% tolower() %>% strsplit("[^a-zA-Z]+")
-     word_table <- tibble(word = words[[1]]) %>%
+     word_table <- unnest_tokens(text_table, "word", "text") %>%
+     #words <- input$theText %>% tolower() %>% strsplit("[^a-zA-Z]+")
+     #word_table <- tibble(word = words[[1]]) %>%
        count(word) %>%
        filter(n >= input$minWord) %>% 
        arrange(desc(n)) %>%
@@ -102,7 +102,7 @@ server <- function(input, output) {
      # create the ggwordcloud
      thePlot <- ggplot(word_table, aes(label = word, color = word, size = n)) +
        geom_text_wordcloud_area() +
-       scale_size_area(max_size = 20) +
+       scale_size_area(max_size = input$maxTextSize) +
        theme_minimal()
      
      # set the colour scheme
@@ -121,7 +121,7 @@ server <- function(input, output) {
      }
      
      thePlot
-   })
+   }, width = "auto", height = "auto")
 }
 
 # Run the application 
