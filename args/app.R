@@ -6,7 +6,7 @@ ui <- dashboardPage(
     dashboardHeader(title = "Arguments"),
     dashboardSidebar(
         sidebarMenu(
-            textInput(inputId = "func", label = "Function", value = "t.test"),
+            textInput(inputId = "func", label = "Package::Function", value = "t.test"),
             actionButton(inputId = "goButton", label = "Get Arguments"),
             hr(),
             tags$a(href="https://github.com/debruine/shiny/tree/master/args/app.R", "Code for this app"),
@@ -15,7 +15,7 @@ ui <- dashboardPage(
         )
     ),
     dashboardBody(
-        p("This app is a demo to see how to get the default arguments for a user-input function."),
+        p("This app is a demo to test getting the default arguments for a user-input function as inputs."),
         fluidRow(
             box(width = 6, uiOutput("arg_input")),
             box(width = 6, htmlOutput("args"))
@@ -33,7 +33,8 @@ getHTMLhelp <- function(...){
 server <- function(input, output) {
     arglist <- reactive({
         input$goButton
-        func_text <- isolate(input$func) 
+        func_text <- isolate(input$func) %>% 
+            gsub("[^a-zA-Z0-9_\\:.]", "", .)
         func <- parse(text = func_text) %>% eval()
         
         fml <- list()
@@ -100,8 +101,10 @@ server <- function(input, output) {
 
     output$args <- renderUI({
         input$goButton
-        func <- isolate(input$func)
-        split_func <- strsplit(func, "::")[[1]]
+        func_text <- isolate(input$func) %>% 
+            gsub("[^a-zA-Z0-9_\\:.]", "", .)
+        
+        split_func <- strsplit(func_text, "::")[[1]]
         if (length(split_func) == 1) {
             h <- getHTMLhelp(split_func)
         } else {
