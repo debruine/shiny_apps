@@ -9,7 +9,7 @@ ui <- dashboardPage(
             textInput(inputId = "func", label = "Function", value = "t.test"),
             actionButton(inputId = "goButton", label = "Get Arguments"),
             hr(),
-            tags$a(href="https://github.com/debruine/shiny/tree/master/args", "Code for this app"),
+            tags$a(href="https://github.com/debruine/shiny/tree/master/args/app.R", "Code for this app"),
             h3("Available Packages"),
             tableOutput("packages")
         )
