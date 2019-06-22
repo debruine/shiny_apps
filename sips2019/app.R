@@ -13,14 +13,15 @@ ui <- dashboardPage(
         )
     ),
     dashboardBody(
-          h2("Sunday"),
+      tabsetPanel(type = "tabs",
+                  tabPanel("Sunday",
           tabsetPanel(type = "tabs",
                       tabPanel("13:45", htmlOutput("sunday1")),
                       tabPanel("14:30", htmlOutput("sunday2")),
                       tabPanel("15:45", htmlOutput("sunday3")),
                       tabPanel("16:30", htmlOutput("sunday4"))
-                      ),
-          h2("Monday"),
+                      )),
+          tabPanel("Monday",
           tabsetPanel(type = "tabs",
                       tabPanel("09:30", htmlOutput("monday1")),
                       tabPanel("10:15", htmlOutput("monday2")),
@@ -28,8 +29,8 @@ ui <- dashboardPage(
                       tabPanel("13:30", htmlOutput("monday4")),
                       tabPanel("14:45", htmlOutput("monday5")),
                       tabPanel("15:30", htmlOutput("monday6"))
-                      ),
-          h2("Tuesday"),
+                      )),
+          tabPanel("Tuesday",
           tabsetPanel(type = "tabs",
                       tabPanel("09:30", htmlOutput("tuesday1")),
                       tabPanel("10:15", htmlOutput("tuesday2")),
@@ -37,8 +38,8 @@ ui <- dashboardPage(
                       tabPanel("13:30", htmlOutput("tuesday4")),
                       tabPanel("14:45", htmlOutput("tuesday5")),
                       tabPanel("15:30", htmlOutput("tuesday6"))
-          )
-          )
+          ))
+          ))
 )
 
 readGoogleSheet <- function(url){
@@ -60,10 +61,19 @@ read_row <- function(sips, row) {
     unlist() %>%
     unname()
   
-  sessions[sessions != "" & sessions != "EDGE OF THE WORLD. TURN BACK."] %>%
+  valid_sessions <- sessions[sessions != "" & sessions != "EDGE OF THE WORLD. TURN BACK."] 
+  
+  valid_sessions %>%
     paste0(collapse = "</li>\n\n<li><input type='checkbox'> ") %>%
     paste0("<h3>", hm, "</h3>\n\n", 
            "<ul><li><input type='checkbox'> ", ., "</li></ul>")
+  
+  
+  x <- purrr::map2(1:length(valid_sessions), valid_sessions, function(i, v) {
+    checkboxInput(paste0(row, "_", i), label = v, width = "100%")
+  })
+  
+  c(list(h3(hm)), x)
 }
 
 
@@ -76,28 +86,28 @@ server <- function(input, output) {
     on.exit(progress$close())
     progress$set(value = 0.5, detail = "running")
     
-    #googlesheets4::sheets_read("1G_SoWUquak6oD-b2L3L-XB7cF97UAGb8PPyVg3r0Lts", col_names = FALSE)
+    
     readGoogleSheet(url="https://docs.google.com/spreadsheets/d/1G_SoWUquak6oD-b2L3L-XB7cF97UAGb8PPyVg3r0Lts/edit#gid=0")
   })
   
-  output$sunday1 <- renderUI({ read_row(sips(), 17) %>% HTML() })
-  output$sunday2 <- renderUI({ read_row(sips(), 18) %>% HTML() })
-  output$sunday3 <- renderUI({ read_row(sips(), 22) %>% HTML() })
-  output$sunday4 <- renderUI({ read_row(sips(), 23) %>% HTML() })
+  output$sunday1 <- renderUI({ read_row(sips(), 17) })
+  output$sunday2 <- renderUI({ read_row(sips(), 18) })
+  output$sunday3 <- renderUI({ read_row(sips(), 22) })
+  output$sunday4 <- renderUI({ read_row(sips(), 23) })
   
-  output$monday1 <- renderUI({ read_row(sips(), 42) %>% HTML() })
-  output$monday2 <- renderUI({ read_row(sips(), 43) %>% HTML() })
-  output$monday3 <- renderUI({ read_row(sips(), 45) %>% HTML() })
-  output$monday4 <- renderUI({ read_row(sips(), 47) %>% HTML() })
-  output$monday5 <- renderUI({ read_row(sips(), 49) %>% HTML() })
-  output$monday6 <- renderUI({ read_row(sips(), 50) %>% HTML() })
+  output$monday1 <- renderUI({ read_row(sips(), 42) })
+  output$monday2 <- renderUI({ read_row(sips(), 43) })
+  output$monday3 <- renderUI({ read_row(sips(), 45) })
+  output$monday4 <- renderUI({ read_row(sips(), 47) })
+  output$monday5 <- renderUI({ read_row(sips(), 49) })
+  output$monday6 <- renderUI({ read_row(sips(), 50) })
   
-  output$tuesday1 <- renderUI({ read_row(sips(), 70) %>% HTML() })
-  output$tuesday2 <- renderUI({ read_row(sips(), 71) %>% HTML() })
-  output$tuesday3 <- renderUI({ read_row(sips(), 73) %>% HTML() })
-  output$tuesday4 <- renderUI({ read_row(sips(), 75) %>% HTML() })
-  output$tuesday5 <- renderUI({ read_row(sips(), 77) %>% HTML() })
-  output$tuesday6 <- renderUI({ read_row(sips(), 78) %>% HTML() })
+  output$tuesday1 <- renderUI({ read_row(sips(), 70) })
+  output$tuesday2 <- renderUI({ read_row(sips(), 71) })
+  output$tuesday3 <- renderUI({ read_row(sips(), 73) })
+  output$tuesday4 <- renderUI({ read_row(sips(), 75) })
+  output$tuesday5 <- renderUI({ read_row(sips(), 77) })
+  output$tuesday6 <- renderUI({ read_row(sips(), 78) })
   
 }
 
