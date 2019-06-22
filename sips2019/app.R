@@ -62,13 +62,7 @@ read_row <- function(sips, row) {
     unname()
   
   valid_sessions <- sessions[sessions != "" & sessions != "EDGE OF THE WORLD. TURN BACK."] 
-  
-  valid_sessions %>%
-    paste0(collapse = "</li>\n\n<li><input type='checkbox'> ") %>%
-    paste0("<h3>", hm, "</h3>\n\n", 
-           "<ul><li><input type='checkbox'> ", ., "</li></ul>")
-  
-  
+
   x <- purrr::map2(1:length(valid_sessions), valid_sessions, function(i, v) {
     checkboxInput(paste0(row, "_", i), label = v, width = "100%")
   })
