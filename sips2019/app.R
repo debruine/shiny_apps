@@ -16,7 +16,7 @@ ui <- dashboardPage(
           h2("Sunday"),
           tabsetPanel(type = "tabs",
                       tabPanel("13:45", htmlOutput("sunday1")),
-                      tabPanel("14:20", htmlOutput("sunday2")),
+                      tabPanel("14:30", htmlOutput("sunday2")),
                       tabPanel("15:45", htmlOutput("sunday3")),
                       tabPanel("16:30", htmlOutput("sunday4"))
                       ),
