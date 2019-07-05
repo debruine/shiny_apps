@@ -54,17 +54,22 @@ readGoogleSheet <- function(url){
                        as.data.frame=TRUE)
 }
 
-read_row <- function(sips, row) {
+read_row <- function(sips, row, loc) {
   hm <- sips[row, 2]
+  
+  locs <- sips[loc, 3:26] %>%
+    unlist() %>%
+    unname()
   
   sessions <- sips[row, 3:26] %>%
     unlist() %>%
     unname()
   
   valid_sessions <- sessions[sessions != "" & sessions != "EDGE OF THE WORLD. TURN BACK."] 
+  valid_locs <- locs[sessions != "" & sessions != "EDGE OF THE WORLD. TURN BACK."]
 
   x <- purrr::map2(1:length(valid_sessions), valid_sessions, function(i, v) {
-    checkboxInput(paste0(row, "_", i), label = v, width = "100%")
+    checkboxInput(paste0(row, "_", i), label = paste0(v, " (", valid_locs[i], ")"), width = "100%")
   })
   
   c(list(h3(hm)), x)
@@ -84,24 +89,24 @@ server <- function(input, output) {
     readGoogleSheet(url="https://docs.google.com/spreadsheets/d/1G_SoWUquak6oD-b2L3L-XB7cF97UAGb8PPyVg3r0Lts/edit#gid=0")
   })
   
-  output$sunday1 <- renderUI({ read_row(sips(), 17) })
-  output$sunday2 <- renderUI({ read_row(sips(), 18) })
-  output$sunday3 <- renderUI({ read_row(sips(), 22) })
-  output$sunday4 <- renderUI({ read_row(sips(), 23) })
+  output$sunday1 <- renderUI({ read_row(sips(), 17, 12) })
+  output$sunday2 <- renderUI({ read_row(sips(), 18, 12) })
+  output$sunday3 <- renderUI({ read_row(sips(), 22, 12) })
+  output$sunday4 <- renderUI({ read_row(sips(), 23, 12) })
   
-  output$monday1 <- renderUI({ read_row(sips(), 42) })
-  output$monday2 <- renderUI({ read_row(sips(), 43) })
-  output$monday3 <- renderUI({ read_row(sips(), 45) })
-  output$monday4 <- renderUI({ read_row(sips(), 47) })
-  output$monday5 <- renderUI({ read_row(sips(), 49) })
-  output$monday6 <- renderUI({ read_row(sips(), 50) })
+  output$monday1 <- renderUI({ read_row(sips(), 42, 37) })
+  output$monday2 <- renderUI({ read_row(sips(), 43, 37) })
+  output$monday3 <- renderUI({ read_row(sips(), 45, 37) })
+  output$monday4 <- renderUI({ read_row(sips(), 47, 37) })
+  output$monday5 <- renderUI({ read_row(sips(), 49, 37) })
+  output$monday6 <- renderUI({ read_row(sips(), 50, 37) })
   
-  output$tuesday1 <- renderUI({ read_row(sips(), 70) })
-  output$tuesday2 <- renderUI({ read_row(sips(), 71) })
-  output$tuesday3 <- renderUI({ read_row(sips(), 73) })
-  output$tuesday4 <- renderUI({ read_row(sips(), 75) })
-  output$tuesday5 <- renderUI({ read_row(sips(), 77) })
-  output$tuesday6 <- renderUI({ read_row(sips(), 78) })
+  output$tuesday1 <- renderUI({ read_row(sips(), 70, 65) })
+  output$tuesday2 <- renderUI({ read_row(sips(), 71, 65) })
+  output$tuesday3 <- renderUI({ read_row(sips(), 73, 65) })
+  output$tuesday4 <- renderUI({ read_row(sips(), 75, 65) })
+  output$tuesday5 <- renderUI({ read_row(sips(), 77, 65) })
+  output$tuesday6 <- renderUI({ read_row(sips(), 78, 65) })
   
 }
 
