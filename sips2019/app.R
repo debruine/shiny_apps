@@ -3,17 +3,35 @@ library(shinydashboard)
 library(dplyr)
 library(XML)
 
+fields <- c()
+
+saveData <- function(data, name) {
+  data <- t(data)
+  # Create a unique file name
+  fileName <- name
+  # Write the file to the local system
+  write.csv(
+    x = data,
+    file = file.path("responses", fileName), 
+    row.names = FALSE, quote = TRUE
+  )
+}
+
 ui <- dashboardPage(
     dashboardHeader(title = "SIPS 2019 Schedule"),
     dashboardSidebar(
         sidebarMenu(
+          textInput("myid", "Your ID (make it unique)"),
+          textOutput("checkid"),
+          actionButton("loadid", "Load"),
+          actionButton("saveid", "Save"),
           tags$a(href="https://osf.io/ndzpt/", "OSF Page"),
           br(),
           tags$a(href="https://docs.google.com/spreadsheets/d/1G_SoWUquak6oD-b2L3L-XB7cF97UAGb8PPyVg3r0Lts/edit#gid=0", "Live Updating Schedule")
         )
     ),
     dashboardBody(
-      
+      p("Click on the menu if the sidebar is collapsed to save or load your saved sessions"),
       tabsetPanel(type = "tabs",
                   tabPanel("Sunday",
           tabsetPanel(type = "tabs",
@@ -76,7 +94,9 @@ read_row <- function(sips, row, loc) {
   valid_locs <- locs[sessions != "" & sessions != "EDGE OF THE WORLD. TURN BACK."]
 
   x <- purrr::map2(1:length(valid_sessions), valid_sessions, function(i, v) {
-    checkboxInput(paste0(row, "_", i), label = paste0(v, " (", valid_locs[i], ")"), width = "100%")
+    id <- paste0("cb_", row, "_", i)
+    fields <<- c(fields, id)
+    checkboxInput(id, label = paste0(v, " (", valid_locs[i], ")"), width = "100%")
   })
   
   c(list(h3(hm)), x)
@@ -84,7 +104,24 @@ read_row <- function(sips, row, loc) {
 
 
 
-server <- function(input, output) {
+server <- function(input, output, session) {
+  
+  output$checkid <- renderText({
+    if (input$myid == "") {
+      shinyjs::disable("loadid")
+      shinyjs::disable("saveid")
+      return("No ID")
+    } else if (file.exists(paste0("responses/", input$myid))) {
+      shinyjs::enable("loadid")
+      shinyjs::enable("saveid")
+      return(paste(input$myid, "exists"))
+    } else {
+      shinyjs::disable("loadid")
+      shinyjs::enable("saveid")
+      return(paste(input$myid, "is available"))
+    }
+  })
+  
   sips <- reactive({
     # Create a Progress object
     progress <- shiny::Progress$new()
@@ -94,6 +131,32 @@ server <- function(input, output) {
     
     
     readGoogleSheet(url="https://docs.google.com/spreadsheets/d/1G_SoWUquak6oD-b2L3L-XB7cF97UAGb8PPyVg3r0Lts/edit#gid=0")
+  })
+  
+  observeEvent(input$saveid, {
+    if (input$myid == "") return(FALSE)
+    
+    data <- sapply(fields, function(x) input[[x]])
+    saveData(data, input$myid)
+    showNotification("Saved")
+    shinyjs::disable("loadid")
+    shinyjs::enable("saveid")
+  })
+  
+  observeEvent(input$loadid, {
+    id <- isolate(input$myid)
+    
+    if (id == "") return(FALSE)
+    if (!file.exists(paste0("responses/", id))) return(FALSE)
+    
+    data <- read.csv(paste0("responses/", id), stringsAsFactors = FALSE) %>% as.list()
+    lapply(names(data), function(x) {
+      updateCheckboxInput(session, x, value = (data[[x]]=="TRUE"))
+    })
+    
+    output$checkid <- renderText({ paste("Loaded from", id) })
+    
+    print(data)
   })
   
   output$sunday1 <- renderUI({ read_row(sips(), 17, 12) })
@@ -115,6 +178,10 @@ server <- function(input, output) {
   output$tuesday5 <- renderUI({ read_row(sips(), 77, 65) })
   output$tuesday6 <- renderUI({ read_row(sips(), 78, 65) })
   
+  lapply(c("sunday1", "sunday2", "sunday3", "sunday4",
+           "monday1", "monday2", "monday3", "monday4", "monday5", "monday6", 
+           "tuesday1", "tuesday2", "tuesday3", "tuesday4", "tuesday5", "tuesday6"),
+         function(x) outputOptions(output, x, suspendWhenHidden = FALSE))
 }
 
 # Run the application 
