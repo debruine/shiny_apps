@@ -13,6 +13,7 @@ ui <- dashboardPage(
         )
     ),
     dashboardBody(
+      
       tabsetPanel(type = "tabs",
                   tabPanel("Sunday",
           tabsetPanel(type = "tabs",
@@ -57,9 +58,15 @@ readGoogleSheet <- function(url){
 read_row <- function(sips, row, loc) {
   hm <- sips[row, 2]
   
-  locs <- sips[loc, 3:26] %>%
+  locs1 <- sips[loc, 3:11] %>%
     unlist() %>%
     unname()
+  
+  locs2 <- sips[loc-1, 5:26] %>%
+    unlist() %>%
+    unname()
+
+  locs <- c(locs1, locs2)
   
   sessions <- sips[row, 3:26] %>%
     unlist() %>%
