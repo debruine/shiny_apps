@@ -15,6 +15,7 @@ sidebar <- dashboardSidebar(
     menuItem("Guess", tabName = "main_tab"),
     menuItem("Data", tabName = "data_tab")
   ),
+  tags$a("Code on GitHub", href = "https://github.com/debruine/shiny/blob/master/guess/app.R"),
   h4("Display Options"),
   checkboxInput("show_violin", "Violin Plot",value = T),
   checkboxInput("show_boxplot", "BoxPlot",value = F),
