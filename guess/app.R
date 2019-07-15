@@ -22,7 +22,9 @@ ui <- dashboardPage(
   sidebar,
   dashboardBody(
     tags$head(
-      tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+      tags$link(rel = "stylesheet", 
+                type = "text/css", 
+                href = "custom.css")
     ),
     tabItems(
       main_tab,
@@ -164,16 +166,12 @@ server <- function(input, output, session) {
     
     # record sample stats
     stats <- dat %>%
-      group_by(group) %>%
-      summarise(m = mean(val),
-                sd = sd(val)) %>%
-      ungroup() %>%
-      mutate(trial_n = input$next_trial) %>%
-      gather(stat, val, m, sd) %>%
-      unite(group, group, stat) %>%
-      spread(group, val)
+      mutate(trial_n = input$next_trial,
+             sample_n = input$sample_again)
       
-    app_vals$stats <- bind_rows(app_vals$stats, stats)
+    app_vals$stats <- suppressWarnings(
+      bind_rows(app_vals$stats, stats)
+    )
 
     return(dat)
   }, ignoreNULL = TRUE)
@@ -201,15 +199,6 @@ server <- function(input, output, session) {
     valueBox(app_vals$es_show, "True Effect",color = color)
   })
   output$feedback <- renderUI(HTML(app_vals$feedback))
-
-  # Show current_n ----
-  output$current_n <- renderText(
-    paste0("The graph below shows ", 
-           app_vals$n,
-           " observation", 
-           ifelse(app_vals$n == 1, "", "s"), 
-           " in each group.")
-  )
   
   # guess button actions ----
   observeEvent(input$guess_A, {
@@ -297,47 +286,57 @@ server <- function(input, output, session) {
     
     correct_text <- ifelse(correct, "Correct!", "Incorrect.")
     
+    # get data from this trial
     trial_dat <-  filter(app_vals$stats, 
                          trial_n == input$next_trial)
     
-    t <- t.test(trial_dat$B_m, 
-                trial_dat$A_m, 
-                na.rm = TRUE) %>%
-      broom::tidy()
-    
-    
+    # calculate t.test if enough data
+    t_text <- ""
+    if (n_distinct(trial_dat$group) == 2 & nrow(trial_dat) > 3) {
+      t <- t.test(val ~ group, data = trial_dat) %>%
+        broom::tidy()
       
-    means <- summarise_if(trial_dat, 
-                          is.numeric, 
-                          mean, na.rm = TRUE)
+      t_text <- sprintf(
+        " (t = %2.2f, p = %.3f)",
+        t$statistic,
+        t$p.value
+      )
+    }
+
+    means <- trial_dat %>%
+      add_row(group = "B", val = NA) %>%
+      group_by(group) %>%
+      summarise(m = mean(val, na.rm = TRUE),
+                sd = sd(val, na.rm = TRUE)) %>%
+      ungroup() %>%
+      mutate(sd_pooled = sqrt(mean(sd))) %>%
+      select(-sd) %>%
+      spread(group, m)
     
     pwr_text <- ""
-    if (app_vals$es != 0) {
-      # calculate N for 1 at a time
-      n <- app_vals$sample_n/ifelse(input$one_two, 2, 1)
-      
+    if (app_vals$es != 0 & nrow(trial_dat) > 3) {
       pwr_text <- sprintf(
-        "With %i samples, you had %2.1f%% power to detect this effect with an alpha of 0.05.",
-        app_vals$sample_n,
-        power.t.test(n = n, delta = app_vals$es)$power * 100
+        "With %i data points, you had %2.1f%% power to detect this effect with an alpha of 0.05.",
+        nrow(trial_dat),
+        power.t.test(n = nrow(trial_dat), delta = app_vals$es)$power * 100
       )
     }
     
     app_vals$feedback <- sprintf(
       "<h3>%s In this trial, A was %s than B with a true effect size of %.2f. %s</h3>
       
-      <h3>Across the %i samples you observed in this trial, A had a mean of %1.2f and B had a mean of %1.2f (t = %2.2f, p = %.3f).</h3>
+      <h3>Across the %i data points you observed in this trial, A had a mean of %1.2f and B had a mean of %1.2f, and the observed effect size was d = %1.2f%s.
       
       <h3>You have answered %i of %i trials correctly.</h3>",
       correct_text, 
       real_dir, 
       app_vals$es, 
       pwr_text,
-      app_vals$sample_n,
-      means$A_m,
-      means$B_m,
-      t$statistic,
-      t$p.value,
+      nrow(trial_dat),
+      means$A,
+      means$B,
+      (means$B - means$A)/means$sd_pooled ,
+      t_text, 
       sum(app_vals$data$correct),
       length(app_vals$data$correct)
     )
@@ -349,14 +348,9 @@ server <- function(input, output, session) {
   output$current_plot <- renderPlot({
     dat <- simdata()
     
-    if (input$accumulate) {
+    if (input$accumulate & input$n_obs == 1) {
       dat <- app_vals$stats %>%
-        filter(trial_n == input$next_trial) %>%
-        gather(group, val, 2:ncol(.)) %>%
-        filter(group %in% c("A_m", "B_m")) %>%
-        mutate(group = gsub("_m", "", group),
-               group = factor(group, levels = c("A", "B"))
-               )
+        filter(trial_n == input$next_trial)
     }
     
     p <- dat %>%
@@ -416,6 +410,8 @@ server <- function(input, output, session) {
   
   # . overall_plot ----
   output$overall_plot <- renderPlot({
+    input$submit_guess
+    
     loadData() %>%
       mutate(bin = factor(real, levels = c(-0.8, -0.5, -0.2, 0, 0.2, 0.5, 0.8))) %>%
       group_by(bin) %>%

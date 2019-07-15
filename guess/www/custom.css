@@ -7,3 +7,8 @@
 #guess_0 {
   border-color: #605CA8 !important;
 }
+
+#samplesBox, #esBox, #guessBox {
+  min-width: 32%;
+  display: inline-block;
+}

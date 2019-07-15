@@ -45,8 +45,6 @@ main_tab <- tabItem(
       width = 8,
       box(
         width = NULL,
-        # . . current_n output ----
-        textOutput("current_n"),
         # . . current_plot plot ----
         plotOutput("current_plot")
       )
