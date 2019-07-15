@@ -411,6 +411,24 @@ server <- function(input, output, session) {
     }
   })
   
+  # . overall_plot ----
+  output$overall_plot <- renderPlot({
+    loadData() %>%
+      mutate(bin = factor(real, levels = c(-0.8, -0.5, -0.2, 0, 0.2, 0.5, 0.8))) %>%
+      group_by(bin) %>%
+      summarise(correct = mean(correct)*100) %>%
+      ggplot(aes(bin, correct, fill = bin)) +
+      geom_col(show.legend = FALSE) +
+      xlab("The true effect size (d)") +
+      ylab("Percent correct") +
+      scale_x_discrete(drop = FALSE) +
+      scale_fill_manual(values = c("#DD4B39", "#DD4B39", "#DD4B39",
+                                   "#605CA8", 
+                                   "#0073B7", "#0073B7", "#0073B7"),
+                        drop = FALSE)
+      
+  })
+  
   # . download session data ----
   output$download <- downloadHandler(
     'data.csv', 
