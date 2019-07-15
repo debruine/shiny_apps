@@ -1,0 +1,12 @@
+name: sips2019
+title: sips2019
+username:
+account: debruine
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 993096
+bundleId: 2203598
+url: https://debruine.shinyapps.io/sips2019/
+when: 1562351603.81301
+asMultiple: FALSE
+asStatic: FALSE

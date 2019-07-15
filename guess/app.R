@@ -5,151 +5,16 @@ library(shinydashboard)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(readr)
 
-saveData <- function(data, id, outputDir = "responses") {
-  # Create a unique file name
-  fileName <- sprintf("%s.csv", id)
-  
-  # Write the file to the local system
-  write.csv(
-    x = data,
-    file = file.path(outputDir, fileName), 
-    row.names = TRUE, quote = TRUE
-  )
-}
-
-loadData <- function(outputDir = "responses") {
-  # read all the files into a list
-  files <- list.files(outputDir, full.names = TRUE)
-  
-  if (length(files) == 0) {
-    # create empty data frame with correct columns
-    data <- data.frame()
-  } else {
-    data <- lapply(files, function(f) {
-      read.csv(f, stringsAsFactors = FALSE) %>%
-        mutate(session_id = gsub("responses/", "", f))
-    })
-    
-    # Concatenate all data together into one data.frame
-    data <- do.call(rbind, data)
-  }
-  
-  data
-}
+# Functions ----
+source("func.R")
 
 # Define UI ----
 
-# . Sidebar ----
-sidebar <- dashboardSidebar(
-  useShinyjs(), #add useShinyjs to be able to disable buttons upon making a choice.
-  sidebarMenu(
-    menuItem("Guess", tabName = "main_tab"),
-    menuItem("Data", tabName = "data_tab")
-  ),
-  tags$a("Code on GitHub", href = "https://github.com/debruine/shiny/blob/master/guess/app.R"),
-  h4("Display Options"),
-  checkboxInput("show_violin", "Violin Plot",value = T),
-  checkboxInput("show_boxplot", "BoxPlot",value = F),
-  checkboxInput("show_points", "Points",value = T),
-  sliderInput("n_obs", "Observations per group", min = 1, max = 100, value = 1, step = 1),
-  checkboxInput("one_two", "One at a time",value = T),
-  checkboxInput("trinary", "Trinary Input",value = T),
-  sliderInput("prob_null", "Null probability", min = 0, max = 100, value = 50, step = 5),
-  p("This app is not storing your data beyond this session.")
-)
-
-# . main_tab ----
-main_tab <- tabItem(
-  tabName = "main_tab",
-  inlineCSS(list(.A = "color: white !important; background: #DD4B39 !important;",
-                 .B = "color: white !important; background: #0073B7 !important;",
-                 .null = "color: white !important; background: #605CA8 !important;")),
-  # . . instructions ----
-  box(title = "Instructions", width = 12,
-    h5("Your task is to guess whether there is a real difference between two groups, one represented by red squares, and one represented by blue circles. To inform your guess, you will sample individual data points from each group."),
-    p("The real difference between the two groups will be randomly decided by the app (and shown after you made your decision). The difference is either an effect size of 0, 0.2, 0.5, or 0.8. If there is an effect, it can be positive or negative (i.e., squares can have a higher or lower means than circles)."),
-    h5("You should sample data until you are 80% certain about your decision about whether there is a real difference or not. If you do this task 30 times, you should guess correctly 24 of the 30 times."),
-    p("Click the 'Next Trial' button to start, and click the 'Sample Again' button until you are 80% certain of your choice. Afterwards, the app will reveal whether you were correct or not. You can click the 'Next Trial' button to start again. The app will keep track of your performence."),
-    collapsible = TRUE, collapsed = TRUE
-  ),
-  
-  
-  fluidRow(
-    column(
-      width = 4,
-      # . . trinary input ----
-      box(id = "trinary_input",
-        width = NULL,
-        h4("Which group is larger?"),
-        # . . trinary guess buttons ----
-        actionButton("guess_A", "A", width = "32%"),
-        actionButton("guess_0", "A = B", width = "32%"),
-        actionButton("guess_B", "B", width = "32%"),
-        
-        # . . dir_guess radiobuttons ----
-        radioButtons("dir_guess", "My effect direction guess", 
-                     choices = c("A larger" = "A", 
-                                 "A and B same" = "0", 
-                                 "B larger" = "B"), 
-                     inline = TRUE)
-      ),
-      # . . continuous input ----
-      box(id = "continuous_input",
-          width = NULL,
-          h4("How much larger is group B (blue circle) than group A (red square)?"),
-          # . . d_guess slide ----
-          sliderInput("d_guess", NULL, 
-                      min = -3, max = 3, value = 0, step = 0.05)
-      ),
-      # . . sample_again button ----
-      actionButton("sample_again", "Sample Again", width = "49%"),
-      # . . submit_guess button ----
-      actionButton("submit_guess", "Submit Guess", width = "49%"),
-      # . . next_trial button ----
-      actionButton("next_trial", "Next Trial", width = "49%")
-    ),
-    column(
-      width = 8,
-      box(
-        width = NULL,
-        # . . current_n output ----
-        textOutput("current_n"),
-        # . . current_plot plot ----
-        plotOutput("current_plot")
-      )
-    )
-  ),
-  fluidRow(
-    column(
-      width = 6,
-      # . . values output ----
-      valueBoxOutput("samplesBox", width = 4),
-      valueBoxOutput("guessBox", width = 4),
-      valueBoxOutput("esBox", width = 4),
-      h3(textOutput("feedback"))
-    ),
-    column(
-      width = 6,
-      # . performance plot ----
-      box(
-        title = "Your guessing performance",
-        width = NULL,
-        # . . performance_plot plot ----
-        plotOutput("performance_plot")
-      )
-    )
-  )
-)
-
-# . data_tab ----
-data_tab <- tabItem(
-  tabName = "data_tab",
-  # . . data_table ----
-  dataTableOutput("data_table"),
-  downloadButton("download", "Download Session Data"),
-  downloadButton("download_all", "Download All Data")
-)
+source("sidebar.R")
+source("main_tab.R")
+source("data_tab.R")
 
 # . dashboardPage ----
 ui <- dashboardPage(
@@ -168,24 +33,32 @@ server <- function(input, output, session) {
   # On start ----
   addClass(selector = "body", class = "sidebar-collapse")
   hide("submit_guess")
-  hide("dir_guess")
+  disable("sample_again")
+  disable("d_guess")
+  disable("guess_A")
+  disable("guess_0")
+  disable("guess_B")
   
   # toggle for trinary/continuous input ----
   observe({
     if (input$trinary) {
       show("trinary_input")
       hide("continuous_input")
+      hide("submit_guess")
     } else {
       hide("trinary_input")
       show("continuous_input")
+      show("submit_guess")
     }
   })
   
-  # Set reactiveValues ----
+  # Set app_vals reactiveValues ----
   app_vals <- reactiveValues(
-    data = data.frame(direction = character(),
-                      guess = double(),
+    data = data.frame(trial_n = integer(),
+                      guess_dir = character(),
+                      guess_es = double(),
                       real = double(),
+                      correct = logical(),
                       samples = integer(),
                       n_obs = integer(),
                       violin = logical(),
@@ -194,21 +67,23 @@ server <- function(input, output, session) {
                       trinary = logical(),
                       one_two = logical()
     ),
-    id = paste0(
-      format(Sys.time(), format = "%Y-%m-%d-%H%M%S"),
-      "_", sample(letters, 5) %>% paste(collapse = "")),
-    n = 20,
+    id = c(format(Sys.time(), format = "%Y-%m-%d-%H%M%S"),
+      "_", sample(letters, 8, replace = TRUE)) %>% 
+      paste(collapse = ""),
+    stats = data.frame(),
+    n = 1,
     offset = 0,
     es = 0,
     es_show = "?",
     guess_show = "?",
     sample_n = 0,
-    feedback = ""
+    feedback = "",
+    direction = ""
   )
 
   # next_trial ----
   observeEvent(input$next_trial, {
-    show("submit_guess")
+    message("next_trial: ", input$next_trial)
     enable("sample_again")
     hide("next_trial")
     enable("d_guess")
@@ -218,7 +93,11 @@ server <- function(input, output, session) {
     disable("n_obs")
     
     # disable submit until an option is chosen
-    if (input$trinary) disable("submit_guess")
+    if (input$trinary) {
+      disable("submit_guess")
+    } else {
+      show("submit_guess")
+    }
     
     # set button colours normal
     removeClass(id = "guess_A", class = "A")
@@ -251,10 +130,10 @@ server <- function(input, output, session) {
     app_vals$sample_n <- 0
     click("sample_again")
     
-  }, ignoreNULL = FALSE)
+  }, ignoreNULL = TRUE)
 
 
-  # sample_again ----
+  # sample_again / simdata()----
   simdata <- eventReactive(input$sample_again, {
     app_vals$es_show <- "?"
     app_vals$guess_show <- "?"
@@ -270,21 +149,55 @@ server <- function(input, output, session) {
     )
     
     dat$group <- factor(dat$group, levels = c("A", "B"))
+    
+    if (input$one_two) {
+      # show A on odd and B on even trials)
+      if (app_vals$sample_n %% 2 == 1) {
+        dat <- filter(dat, group == "A")
+      } else {
+        dat <- filter(dat, group == "B")
+      }
+    }
+    
+    # record sample stats
+    stats <- dat %>%
+      group_by(group) %>%
+      summarise(m = mean(val),
+                sd = sd(val)) %>%
+      ungroup() %>%
+      mutate(trial_n = input$next_trial) %>%
+      gather(stat, val, m, sd) %>%
+      unite(group, group, stat) %>%
+      spread(group, val)
+      
+    app_vals$stats <- bind_rows(app_vals$stats, stats)
 
     return(dat)
-  }, ignoreNULL = FALSE)
+  }, ignoreNULL = TRUE)
   
   # valueBoxes ----
   output$samplesBox <- renderValueBox({
-    valueBox(app_vals$sample_n, "Samples",color = "red")
+    valueBox(app_vals$sample_n, "Samples",color = "black")
   })
   output$guessBox <- renderValueBox({
-    valueBox(app_vals$guess_show, "Your Guess",color = "purple")
+    color <- case_when(
+      app_vals$guess_show == "A" ~ "red",
+      app_vals$guess_show == "0" ~ "purple",
+      app_vals$guess_show == "B" ~ "blue",
+      TRUE ~ "black"
+    )
+    valueBox(app_vals$guess_show, "Your Guess",color = color)
   })
   output$esBox <- renderValueBox({
-    valueBox(app_vals$es_show, "True Effect",color = "blue")
+    color <- case_when(
+      app_vals$es_show == "A" ~ "red",
+      app_vals$es_show == "0" ~ "purple",
+      app_vals$es_show == "B" ~ "blue",
+      TRUE ~ "black"
+    )
+    valueBox(app_vals$es_show, "True Effect",color = color)
   })
-  output$feedback <- renderText(app_vals$feedback)
+  output$feedback <- renderUI(HTML(app_vals$feedback))
 
   # Show current_n ----
   output$current_n <- renderText(
@@ -295,31 +208,33 @@ server <- function(input, output, session) {
            " in each group.")
   )
   
-  # . guess button actions ----
+  # guess button actions ----
   observeEvent(input$guess_A, {
-    updateRadioButtons(session, "dir_guess", selected = "A")
+    app_vals$direction <- "A"
     addClass(id = "guess_A", class = "A")
     removeClass(id = "guess_0", class = "null")
     removeClass(id = "guess_B", class = "B")
-    enable("submit_guess")
+    click("submit_guess")
   })
   observeEvent(input$guess_0, {
-    updateRadioButtons(session, "dir_guess", selected = "0")
+    app_vals$direction <- "0"
     removeClass(id = "guess_A", class = "A")
     addClass(id = "guess_0", class = "null")
     removeClass(id = "guess_B", class = "B")
-    enable("submit_guess")
+    click("submit_guess")
   })
   observeEvent(input$guess_B, {
-    updateRadioButtons(session, "dir_guess", selected = "B")
+    app_vals$direction <- "B"
     removeClass(id = "guess_A", class = "A")
     removeClass(id = "guess_0", class = "null")
     addClass(id = "guess_B", class = "B")
-    enable("submit_guess")
+    click("submit_guess")
   })
 
-  # . Save guess ----
+  # submit_guess ----
   observeEvent(input$submit_guess, {
+    message("submit_guess")
+    
     hide("submit_guess")
     show("next_trial")
     disable("sample_again")
@@ -330,8 +245,8 @@ server <- function(input, output, session) {
     enable("n_obs")
 
     if (input$trinary) {
-      direction <- input$dir_guess
-      app_vals$guess_show <- direction
+      message("direction=", app_vals$direction)
+      app_vals$guess_show <- app_vals$direction
       guess <- NA
       app_vals$es_show <- case_when(
         app_vals$es < 0 ~ "A",
@@ -339,7 +254,7 @@ server <- function(input, output, session) {
         app_vals$es > 0 ~ "B"
       )
     } else {
-      direction <- case_when(
+      app_vals$direction <- case_when(
         input$d_guess < 0 ~ "A",
         input$d_guess == 0 ~ "0",
         input$d_guess > 0 ~ "B"
@@ -349,10 +264,19 @@ server <- function(input, output, session) {
       app_vals$es_show <- app_vals$es
     }
     
+    correct <- case_when(
+      app_vals$es < 0    & app_vals$direction == "A" ~ TRUE,
+      app_vals$es == "0" & app_vals$direction == "0"~ TRUE,
+      app_vals$es > 0    & app_vals$direction == "B" ~ TRUE,
+      TRUE ~ FALSE
+    )
+    
     app_vals$data <- app_vals$data %>%
-      add_row(direction = direction,
-              guess = guess,
+      add_row(trial_n = input$next_trial,
+              guess_dir = app_vals$direction,
+              guess_es = guess,
               real = app_vals$es,
+              correct = correct,
               samples = app_vals$sample_n,
               n_obs = input$n_obs,
               violin = input$show_violin,
@@ -361,39 +285,75 @@ server <- function(input, output, session) {
               trinary = input$trinary,
               one_two = input$one_two)
     
-    # . . feedback ----
+    # feedback ----
     real_dir <- case_when(
       app_vals$es < 0 ~ "bigger",
       app_vals$es == "0" ~ "the same size as",
       app_vals$es > 0 ~ "smaller"
     )
     
-    correct <- case_when(
-      app_vals$es < 0    & direction == "A" ~ "Correct!",
-      app_vals$es == "0" & direction == "0"~ "Correct!",
-      app_vals$es > 0    & direction == "B" ~ "Correct!",
-      TRUE ~ "Incorrect."
+    correct_text <- ifelse(correct, "Correct!", "Incorrect.")
+    
+    trial_dat <-  filter(app_vals$stats, 
+                         trial_n == input$next_trial)
+    
+    t <- t.test(trial_dat$B_m, 
+                trial_dat$A_m, 
+                na.rm = TRUE) %>%
+      broom::tidy()
+    
+    
+      
+    means <- summarise_if(trial_dat, 
+                          is.numeric, 
+                          mean, na.rm = TRUE)
+    
+    pwr_text <- ""
+    if (app_vals$es != 0) {
+      # calculate N for 1 at a time
+      n <- app_vals$sample_n/ifelse(input$one_two, 2, 1)
+      
+      pwr_text <- sprintf(
+        "With %i samples, you had %2.1f%% power to detect this effect with an alpha of 0.05.",
+        app_vals$sample_n,
+        power.t.test(n = n, delta = app_vals$es)$power * 100
+      )
+    }
+    
+    app_vals$feedback <- sprintf(
+      "<h3>%s In this trial, A was %s than B with a true effect size of %.2f. %s</h3>
+      
+      <h3>Across the %i samples you observed in this trial, A had a mean of %1.2f and B had a mean of %1.2f (t = %2.2f, p = %.3f).</h3>
+      
+      <h3>You have answered %i of %i trials correctly.</h3>",
+      correct_text, 
+      real_dir, 
+      app_vals$es, 
+      pwr_text,
+      app_vals$sample_n,
+      means$A_m,
+      means$B_m,
+      t$statistic,
+      t$p.value,
+      sum(app_vals$data$correct),
+      length(app_vals$data$correct)
     )
     
-    app_vals$feedback <- paste0(
-      correct, " In this trial, A was ", real_dir , 
-      " than B with a true effect size of ",
-      app_vals$es, "."
-    )
-    
-    saveData(app_vals$data, app_vals$id)
+    saveData(app_vals$data, app_vals$stats, app_vals$id)
   })
 
-  # . Generate current_plot ----
+  # . current_plot ----
   output$current_plot <- renderPlot({
     dat <- simdata()
-    if (input$one_two) {
-      # show A on odd and B on even trials)
-      if (app_vals$sample_n %% 2 == 1) {
-        dat <- filter(dat, group == "A")
-      } else {
-        dat <- filter(dat, group == "B")
-      }
+    
+    if (input$accumulate) {
+      dat <- app_vals$stats %>%
+        filter(trial_n == input$next_trial) %>%
+        gather(group, val, 2:ncol(.)) %>%
+        filter(group %in% c("A_m", "B_m")) %>%
+        mutate(group = gsub("_m", "", group),
+               group = factor(group, levels = c("A", "B"))
+               )
     }
     
     p <- dat %>%
@@ -406,42 +366,42 @@ server <- function(input, output, session) {
       theme_minimal()
 
     if (input$show_points) {
-      pt_width <- (app_vals$n-1) * 0.004
-      pt_size <- 5.6 - log(app_vals$n)
+      pt_width <- (nrow(dat)-1) * 0.004
+      pt_size <- 5.6 - log(nrow(dat))
       p <- p + geom_jitter(show.legend = F, width = pt_width, size = pt_size)
     }
-    if (input$show_violin & app_vals$n > 1) {
+    if (input$show_violin & nrow(dat) > 1) {
       p <- p + geom_violin(draw_quantiles = 0.5,
                            alpha = 0.3, show.legend = F)
     }
-    if (input$show_boxplot & app_vals$n > 1) {
+    if (input$show_boxplot & nrow(dat) > 1) {
       p <- p + geom_boxplot(width = 0.25, alpha = 0.3, show.legend = F)
     }
 
     p
   })
 
-  # . Generate performance_plot ----
+  # . performance_plot ----
   output$performance_plot <- renderPlot({
     if (input$trinary) {
+      # TODO: too rigid, needs flexibility for other levels combos
       app_vals$data %>%
-        mutate(
-          correct = case_when(
-            real == 0 & guess == "0" ~ 1,
-            real < 0 & guess == "A" ~ 1,
-            real > 0 & guess == "B" ~ 1,
-            TRUE ~ 0
-          ), 
-          bin = round(real*10)/10
-        ) %>%
+        mutate(bin = factor(real, levels = c(-0.8, -0.5, -0.2, 0, 0.2, 0.5, 0.8))) %>%
         group_by(bin) %>%
-        summarise(correct = mean(correct)) %>%
-        ggplot(aes(bin, correct)) +
-        geom_col()
+        summarise(correct = mean(correct)*100) %>%
+        ggplot(aes(bin, correct, fill = bin)) +
+        geom_col(show.legend = FALSE) +
+        xlab("The true effect size (d)") +
+        ylab("Percent correct") +
+        scale_x_discrete(drop = FALSE) +
+        scale_fill_manual(values = c("#DD4B39", "#DD4B39", "#DD4B39",
+                                     "#605CA8", 
+                                     "#0073B7", "#0073B7", "#0073B7"),
+                          drop = FALSE)
         
     } else {
       app_vals$data %>%
-        ggplot(aes(real, guess)) +
+        ggplot(aes(real, guess_es)) +
         geom_abline(slope = 1, intercept = 0, color = "grey30") +
         geom_point() +
         geom_smooth(method = "lm") +
@@ -451,21 +411,29 @@ server <- function(input, output, session) {
     }
   })
   
-  # . download session data
+  # . download session data ----
   output$download <- downloadHandler(
     'data.csv', 
-    content = function(file) { write.csv(app_vals$data, file) }, 
+    content = function(file) { write_csv(app_vals$data, file) }, 
     contentType = "text/csv"
   )
   
-  # . download all data
-  output$download_all <- downloadHandler(
+  # . download all data ----
+  output$download_data <- downloadHandler(
     'all_data.csv', 
-    content = function(file) { write.csv(loadData(), file) }, 
+    content = function(file) { write_csv(loadData(), file) }, 
     contentType = "text/csv"
   )
   
-  output$data_table <- renderDataTable( loadData() )
+  # . download all stats ----
+  output$download_stats <- downloadHandler(
+    'all_stats.csv', 
+    content = function(file) { write_csv(loadData(pattern = "*_stats.csv"), file) }, 
+    contentType = "text/csv"
+  )
+  
+  # . data_table ----
+  output$data_table <- renderDataTable( app_vals$data )
 }
 
 # Run the application ----
