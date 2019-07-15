@@ -5,8 +5,9 @@ account: debruine
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 1029221
-bundleId: 2233534
+bundleId: 2233617
 url: https://debruine.shinyapps.io/guess/
-when: 1563203349.99865
+when: 1563204983.23276
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: responses/.DS_Store|responses/2019-07-15-163338_wttsdbac_data.csv|responses/2019-07-15-163338_wttsdbac_stats.csv
