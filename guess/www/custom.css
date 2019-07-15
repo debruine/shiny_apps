@@ -1,3 +1,16 @@
+.A {
+  color: white !important; 
+  background: #DD4B39 !important;
+}
+.B {
+  color: white !important; 
+  background: #0073B7 !important;
+}
+.null {
+  color: white !important; 
+  background: #605CA8 !important;
+}
+
 #guess_A {
   border-color: #DD4B39 !important;
 }

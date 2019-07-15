@@ -1,6 +1,5 @@
 # . Sidebar ----
 sidebar <- dashboardSidebar(
-  useShinyjs(), #add useShinyjs to be able to disable buttons upon making a choice.
   sidebarMenu(
     menuItem("Guess", tabName = "main_tab"),
     menuItem("Data", tabName = "data_tab")
@@ -15,5 +14,5 @@ sidebar <- dashboardSidebar(
   checkboxInput("trinary", "Trinary Input",value = T),
   checkboxInput("accumulate", "Accumulate",value = F),
   sliderInput("prob_null", "Null probability", min = 0, max = 100, value = 50, step = 5),
-  p("This app is not storing your data beyond this session.")
+  p("This app is storing your data.")
 )

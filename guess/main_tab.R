@@ -1,9 +1,6 @@
 # . main_tab ----
 main_tab <- tabItem(
   tabName = "main_tab",
-  inlineCSS(list(.A = "color: white !important; background: #DD4B39 !important;",
-                 .B = "color: white !important; background: #0073B7 !important;",
-                 .null = "color: white !important; background: #605CA8 !important;")),
   # . . instructions ----
   box(title = "Instructions", width = 12,
       p("Your task is to guess whether there is a real difference between two groups, one represented by red squares, and one represented by blue circles. To inform your guess, you will sample individual data points from each group."),
@@ -63,8 +60,8 @@ main_tab <- tabItem(
       width = 6,
       # . performance plot ----
       box(
-        title = "Your guessing performance",
         width = NULL,
+        h4(textOutput("guess_correct")),
         # . . performance_plot plot ----
         plotOutput("performance_plot")
       )

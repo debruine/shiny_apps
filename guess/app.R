@@ -1,11 +1,9 @@
 # Libraries ----
 library(shiny)
-library(shinyjs)
 library(shinydashboard)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
-library(readr)
 
 # Functions ----
 source("func.R")
@@ -21,6 +19,7 @@ ui <- dashboardPage(
   dashboardHeader(title = "Guess"),
   sidebar,
   dashboardBody(
+    shinyjs::useShinyjs(), #add useShinyjs to be able to disable buttons upon making a choice.
     tags$head(
       tags$link(rel = "stylesheet", 
                 type = "text/css", 
@@ -36,24 +35,24 @@ ui <- dashboardPage(
 # Define server logic ----
 server <- function(input, output, session) {
   # On start ----
-  addClass(selector = "body", class = "sidebar-collapse")
-  hide("submit_guess")
-  disable("sample_again")
-  disable("d_guess")
-  disable("guess_A")
-  disable("guess_0")
-  disable("guess_B")
+  shinyjs::addClass(selector = "body", class = "sidebar-collapse")
+  shinyjs::hide("submit_guess")
+  shinyjs::disable("sample_again")
+  shinyjs::disable("d_guess")
+  shinyjs::disable("guess_A")
+  shinyjs::disable("guess_0")
+  shinyjs::disable("guess_B")
   
   # toggle for trinary/continuous input ----
   observe({
     if (input$trinary) {
-      show("trinary_input")
-      hide("continuous_input")
-      hide("submit_guess")
+      shinyjs::show("trinary_input")
+      shinyjs::hide("continuous_input")
+      shinyjs::hide("submit_guess")
     } else {
-      hide("trinary_input")
-      show("continuous_input")
-      show("submit_guess")
+      shinyjs::hide("trinary_input")
+      shinyjs::show("continuous_input")
+      shinyjs::show("submit_guess")
     }
   })
   
@@ -85,29 +84,36 @@ server <- function(input, output, session) {
     feedback = "",
     direction = ""
   )
+  
+  output$guess_correct <- renderText({
+    sprintf(
+      "You have answered %i of %i trials correctly.",
+      sum(app_vals$data$correct),
+      length(app_vals$data$correct)
+    )
+  })
 
   # next_trial ----
   observeEvent(input$next_trial, {
     message("next_trial: ", input$next_trial)
-    enable("sample_again")
-    hide("next_trial")
-    enable("d_guess")
-    enable("guess_A")
-    enable("guess_0")
-    enable("guess_B")
-    disable("n_obs")
+    shinyjs::enable("sample_again")
+    shinyjs::hide("next_trial")
+    shinyjs::enable("d_guess")
+    shinyjs::enable("guess_A")
+    shinyjs::enable("guess_0")
+    shinyjs::enable("guess_B")
     
-    # disable submit until an option is chosen
+    # shinyjs::disable submit until an option is chosen
     if (input$trinary) {
-      disable("submit_guess")
+      shinyjs::disable("submit_guess")
     } else {
-      show("submit_guess")
+      shinyjs::show("submit_guess")
     }
     
     # set button colours normal
-    removeClass(id = "guess_A", class = "A")
-    removeClass(id = "guess_0", class = "null")
-    removeClass(id = "guess_B", class = "B")
+    shinyjs::removeClass(id = "guess_A", class = "A")
+    shinyjs::removeClass(id = "guess_0", class = "null")
+    shinyjs::removeClass(id = "guess_B", class = "B")
     
     app_vals$feedback <- ""
     
@@ -133,7 +139,7 @@ server <- function(input, output, session) {
     app_vals$offset <- sample(seq(-1,1,by = 0.1), 1)
     
     app_vals$sample_n <- 0
-    click("sample_again")
+    shinyjs::click("sample_again")
     
   }, ignoreNULL = TRUE)
 
@@ -150,13 +156,13 @@ server <- function(input, output, session) {
     B <- rnorm(app_vals$n, app_vals$offset + app_vals$es, 1)
     dat <- data.frame(
       group = rep(c("A", "B"), each = app_vals$n),
-      val = c(A, B)
+      val = c(A, B) %>% round(3)
     )
     
     dat$group <- factor(dat$group, levels = c("A", "B"))
     
     if (input$one_two) {
-      # show A on odd and B on even trials)
+      # shinyjs::show A on odd and B on even trials)
       if (app_vals$sample_n %% 2 == 1) {
         dat <- filter(dat, group == "A")
       } else {
@@ -203,38 +209,37 @@ server <- function(input, output, session) {
   # guess button actions ----
   observeEvent(input$guess_A, {
     app_vals$direction <- "A"
-    addClass(id = "guess_A", class = "A")
-    removeClass(id = "guess_0", class = "null")
-    removeClass(id = "guess_B", class = "B")
-    click("submit_guess")
+    shinyjs::addClass(id = "guess_A", class = "A")
+    shinyjs::removeClass(id = "guess_0", class = "null")
+    shinyjs::removeClass(id = "guess_B", class = "B")
+    shinyjs::click("submit_guess")
   })
   observeEvent(input$guess_0, {
     app_vals$direction <- "0"
-    removeClass(id = "guess_A", class = "A")
-    addClass(id = "guess_0", class = "null")
-    removeClass(id = "guess_B", class = "B")
-    click("submit_guess")
+    shinyjs::removeClass(id = "guess_A", class = "A")
+    shinyjs::addClass(id = "guess_0", class = "null")
+    shinyjs::removeClass(id = "guess_B", class = "B")
+    shinyjs::click("submit_guess")
   })
   observeEvent(input$guess_B, {
     app_vals$direction <- "B"
-    removeClass(id = "guess_A", class = "A")
-    removeClass(id = "guess_0", class = "null")
-    addClass(id = "guess_B", class = "B")
-    click("submit_guess")
+    shinyjs::removeClass(id = "guess_A", class = "A")
+    shinyjs::removeClass(id = "guess_0", class = "null")
+    shinyjs::addClass(id = "guess_B", class = "B")
+    shinyjs::click("submit_guess")
   })
 
   # submit_guess ----
   observeEvent(input$submit_guess, {
     message("submit_guess")
     
-    hide("submit_guess")
-    show("next_trial")
-    disable("sample_again")
-    disable("d_guess")
-    disable("guess_A")
-    disable("guess_0")
-    disable("guess_B")
-    enable("n_obs")
+    shinyjs::hide("submit_guess")
+    shinyjs::show("next_trial")
+    shinyjs::disable("sample_again")
+    shinyjs::disable("d_guess")
+    shinyjs::disable("guess_A")
+    shinyjs::disable("guess_0")
+    shinyjs::disable("guess_B")
 
     if (input$trinary) {
       message("direction=", app_vals$direction)
@@ -325,9 +330,7 @@ server <- function(input, output, session) {
     app_vals$feedback <- sprintf(
       "<h3>%s In this trial, A was %s than B with a true effect size of %.2f. %s</h3>
       
-      <h3>Across the %i data points you observed in this trial, A had a mean of %1.2f and B had a mean of %1.2f, and the observed effect size was d = %1.2f%s.
-      
-      <h3>You have answered %i of %i trials correctly.</h3>",
+      <h3>Across the %i data points you observed in this trial, A had a mean of %1.2f, B had a mean of %1.2f, and the observed effect size was d = %1.2f%s.</h3>",
       correct_text, 
       real_dir, 
       app_vals$es, 
@@ -336,9 +339,7 @@ server <- function(input, output, session) {
       means$A,
       means$B,
       (means$B - means$A)/means$sd_pooled ,
-      t_text, 
-      sum(app_vals$data$correct),
-      length(app_vals$data$correct)
+      t_text
     )
     
     saveData(app_vals$data, app_vals$stats, app_vals$id)
@@ -431,21 +432,21 @@ server <- function(input, output, session) {
   # . download session data ----
   output$download <- downloadHandler(
     'data.csv', 
-    content = function(file) { write_csv(app_vals$data, file) }, 
+    content = function(file) { readr::write_csv(app_vals$data, file) }, 
     contentType = "text/csv"
   )
   
   # . download all data ----
   output$download_data <- downloadHandler(
     'all_data.csv', 
-    content = function(file) { write_csv(loadData(), file) }, 
+    content = function(file) { readr::write_csv(loadData(), file) }, 
     contentType = "text/csv"
   )
   
   # . download all stats ----
   output$download_stats <- downloadHandler(
     'all_stats.csv', 
-    content = function(file) { write_csv(loadData(pattern = "*_stats.csv"), file) }, 
+    content = function(file) { readr::write_csv(loadData(pattern = "*_stats.csv"), file) }, 
     contentType = "text/csv"
   )
   

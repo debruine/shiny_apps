@@ -4,12 +4,12 @@ saveData <- function(data, stats, id, outputDir = "responses") {
   statsName <- sprintf("%s_stats.csv", id)
   
   # Write the files to the local system
-  write_csv(
+  readr::write_csv(
     x = data,
     path = file.path(outputDir, dataName)
   )
   
-  write_csv(
+  readr::write_csv(
     x = stats,
     path = file.path(outputDir, statsName)
   )
@@ -28,7 +28,7 @@ loadData <- function(outputDir = "responses",
     data <- data.frame()
   } else {
     data <- lapply(files, function(f) {
-      read_csv(f) %>%
+      readr::read_csv(f) %>%
         mutate(session_id = gsub("responses/", "", f))
     })
     
