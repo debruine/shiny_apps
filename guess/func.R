@@ -28,13 +28,70 @@ loadData <- function(outputDir = "responses",
     data <- data.frame()
   } else {
     data <- lapply(files, function(f) {
-      readr::read_csv(f) %>%
+      readr::read_csv(f, col_types = readr::cols(guess_dir = "c")) %>%
         mutate(session_id = gsub("responses/", "", f))
     })
     
     # Concatenate all data together into one data.frame
-    data <- do.call(rbind, data)
+    data <- do.call(bind_rows, data)
   }
   
   data
+}
+
+summary_tri_plot <- function(data) {
+  # TODO: too rigid, needs flexibility for other levels combos
+  mutate(data, bin = factor(real, levels = c(-.8, -.5, -.2, 0, .2, .5, .8))) %>%
+    group_by(bin) %>%
+    summarise(correct = mean(correct)*100) %>%
+    ggplot(aes(bin, correct, fill = bin)) +
+    geom_col(show.legend = FALSE) +
+    xlab("The true effect size (d)") +
+    ylab("Percent correct") +
+    scale_x_discrete(drop = FALSE) +
+    scale_fill_manual(values = c("#DD4B39", "#DD4B39", "#DD4B39",
+                                 "#605CA8", 
+                                 "#0073B7", "#0073B7", "#0073B7"),
+                      drop = FALSE)  +
+    theme_minimal()
+}
+
+summary_guess_plot <- function(data) {
+  ggplot(data, aes(real, guess_es)) +
+    geom_abline(slope = 1, intercept = 0, color = "grey30") +
+    geom_point() +
+    geom_smooth(method = "lm") +
+    xlab("The true effect size (d)") +
+    ylab("Your guessed effect size (d)") +
+    coord_cartesian(xlim = c(-1, 1), ylim = c(-1, 1)) +
+    theme_minimal()
+}
+
+current_plot <- function(data, 
+                         points  = FALSE, 
+                         violin  = FALSE, 
+                         boxplot = FALSE) {
+  p <- data %>%
+    ggplot(aes(group, val, color = group, shape = group)) +
+    ylim(-3, 3) +
+    ylab("") +
+    scale_x_discrete(drop = F) +
+    scale_colour_manual(values = c("red", "steelblue3"), drop = F) +
+    scale_shape_manual(values = c(15, 19), drop = F) +
+    theme_minimal()
+  
+  if (points) {
+    pt_width <- min(50, (nrow(data)-1) * 0.004) # not > 50
+    pt_size <- max(1, 5.6 - log(nrow(data))) # not < 1
+    p <- p + geom_jitter(show.legend = F, width = pt_width, size = pt_size)
+  }
+  if (violin & nrow(data) > 1) {
+    p <- p + geom_violin(draw_quantiles = 0.5,
+                         alpha = 0.3, show.legend = F)
+  }
+  if (boxplot & nrow(data) > 1) {
+    p <- p + geom_boxplot(width = 0.25, alpha = 0.3, show.legend = F)
+  }
+  
+  p
 }

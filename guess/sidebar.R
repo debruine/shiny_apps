@@ -10,6 +10,7 @@ sidebar <- dashboardSidebar(
   checkboxInput("show_boxplot", "BoxPlot",value = F),
   checkboxInput("show_points", "Points",value = T),
   sliderInput("n_obs", "Observations per group", min = 1, max = 100, value = 1, step = 1),
+  sliderInput("max_samples", "Maximum Samples", min = 1, max = 200, value = 200, step = 1),
   checkboxInput("one_two", "One at a time",value = T),
   checkboxInput("trinary", "Trinary Input",value = T),
   checkboxInput("accumulate", "Accumulate",value = F),

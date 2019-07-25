@@ -1,0 +1,12 @@
+name: hb39
+title: hb39
+username:
+account: debruine
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1037830
+bundleId: 2245086
+url: https://debruine.shinyapps.io/hb39/
+when: 1563474121.19789
+asMultiple: FALSE
+asStatic: FALSE

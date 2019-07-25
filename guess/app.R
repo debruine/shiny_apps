@@ -45,15 +45,10 @@ server <- function(input, output, session) {
   
   # toggle for trinary/continuous input ----
   observe({
-    if (input$trinary) {
-      shinyjs::show("trinary_input")
-      shinyjs::hide("continuous_input")
-      shinyjs::hide("submit_guess")
-    } else {
-      shinyjs::hide("trinary_input")
-      shinyjs::show("continuous_input")
-      shinyjs::show("submit_guess")
-    }
+    shinyjs::toggle("trinary_input", condition = input$trinary)
+    shinyjs::toggle("continuous_input", condition = !input$trinary)
+    shinyjs::toggle("submit_guess", condition = !input$trinary)
+    shinyjs::toggleState("submit_guess", condition = !input$trinary)
   })
   
   # Set app_vals reactiveValues ----
@@ -69,13 +64,13 @@ server <- function(input, output, session) {
                       boxplot = logical(),
                       points = logical(),
                       trinary = logical(),
-                      one_two = logical()
+                      one_two = logical(),
+                      accumulate = logical()
     ),
     id = c(format(Sys.time(), format = "%Y-%m-%d-%H%M%S"),
       "_", sample(letters, 8, replace = TRUE)) %>% 
       paste(collapse = ""),
     stats = data.frame(),
-    n = 1,
     offset = 0,
     es = 0,
     es_show = "?",
@@ -95,7 +90,6 @@ server <- function(input, output, session) {
 
   # next_trial ----
   observeEvent(input$next_trial, {
-    message("next_trial: ", input$next_trial)
     shinyjs::enable("sample_again")
     shinyjs::hide("next_trial")
     shinyjs::enable("d_guess")
@@ -116,12 +110,10 @@ server <- function(input, output, session) {
     shinyjs::removeClass(id = "guess_B", class = "B")
     
     app_vals$feedback <- ""
+    app_vals$direction <- ""
     
     # reset slider
     updateSliderInput(session, "d_guess", value = 0)
-    
-    # set N
-    app_vals$n <- input$n_obs
     
     # set sample effect size
     #app_vals$es <- (rnorm(1, 0, 1) %>% 
@@ -151,18 +143,23 @@ server <- function(input, output, session) {
     
     app_vals$sample_n <- app_vals$sample_n + 1
     
+    # prevent further sampling after max_samples
+    if (app_vals$sample_n >= input$max_samples) {
+      shinyjs::disable("sample_again")
+    }
+    
     # simulate data
-    A <-  rnorm(app_vals$n, app_vals$offset, 1)
-    B <- rnorm(app_vals$n, app_vals$offset + app_vals$es, 1)
+    A <-  rnorm(input$n_obs, app_vals$offset, 1)
+    B <- rnorm(input$n_obs, app_vals$offset + app_vals$es, 1)
     dat <- data.frame(
-      group = rep(c("A", "B"), each = app_vals$n),
+      group = rep(c("A", "B"), each = input$n_obs),
       val = c(A, B) %>% round(3)
     )
     
     dat$group <- factor(dat$group, levels = c("A", "B"))
     
     if (input$one_two) {
-      # shinyjs::show A on odd and B on even trials)
+      # show A on odd and B on even trials)
       if (app_vals$sample_n %% 2 == 1) {
         dat <- filter(dat, group == "A")
       } else {
@@ -188,9 +185,9 @@ server <- function(input, output, session) {
   })
   output$guessBox <- renderValueBox({
     color <- case_when(
-      app_vals$guess_show == "A" ~ "red",
-      app_vals$guess_show == "0" ~ "purple",
-      app_vals$guess_show == "B" ~ "blue",
+      app_vals$direction == "A" ~ "red",
+      app_vals$direction == "0" ~ "purple",
+      app_vals$direction == "B" ~ "blue",
       TRUE ~ "black"
     )
     valueBox(app_vals$guess_show, "Your Guess",color = color)
@@ -198,8 +195,10 @@ server <- function(input, output, session) {
   output$esBox <- renderValueBox({
     color <- case_when(
       app_vals$es_show == "A" ~ "red",
+      app_vals$es_show < 0 ~ "red",
       app_vals$es_show == "0" ~ "purple",
       app_vals$es_show == "B" ~ "blue",
+      app_vals$es_show > 0 ~ "blue",
       TRUE ~ "black"
     )
     valueBox(app_vals$es_show, "True Effect",color = color)
@@ -231,8 +230,6 @@ server <- function(input, output, session) {
 
   # submit_guess ----
   observeEvent(input$submit_guess, {
-    message("submit_guess")
-    
     shinyjs::hide("submit_guess")
     shinyjs::show("next_trial")
     shinyjs::disable("sample_again")
@@ -242,7 +239,6 @@ server <- function(input, output, session) {
     shinyjs::disable("guess_B")
 
     if (input$trinary) {
-      message("direction=", app_vals$direction)
       app_vals$guess_show <- app_vals$direction
       guess <- NA
       app_vals$es_show <- case_when(
@@ -268,8 +264,8 @@ server <- function(input, output, session) {
       TRUE ~ FALSE
     )
     
-    app_vals$data <- app_vals$data %>%
-      add_row(trial_n = input$next_trial,
+    app_vals$data <- bind_rows(app_vals$data,
+      data.frame(trial_n = input$next_trial,
               guess_dir = app_vals$direction,
               guess_es = guess,
               real = app_vals$es,
@@ -280,7 +276,8 @@ server <- function(input, output, session) {
               boxplot = input$show_boxplot,
               points = input$show_points,
               trinary = input$trinary,
-              one_two = input$one_two)
+              one_two = input$one_two,
+              accumulate = input$accumulate))
     
     # feedback ----
     real_dir <- case_when(
@@ -349,63 +346,24 @@ server <- function(input, output, session) {
   output$current_plot <- renderPlot({
     dat <- simdata()
     
+    # TODO: show accumulate on submit_guess
     if (input$accumulate & input$n_obs == 1) {
       dat <- app_vals$stats %>%
         filter(trial_n == input$next_trial)
     }
     
-    p <- dat %>%
-      ggplot(aes(group, val, color = group, shape = group)) +
-      ylim(-6, 6) +
-      ylab("") +
-      scale_x_discrete(drop = F) +
-      scale_colour_manual(values = c("red", "steelblue3"), drop = F) +
-      scale_shape_manual(values = c(15, 19), drop = F)
-      theme_minimal()
-
-    if (input$show_points) {
-      pt_width <- (nrow(dat)-1) * 0.004
-      pt_size <- 5.6 - log(nrow(dat))
-      p <- p + geom_jitter(show.legend = F, width = pt_width, size = pt_size)
-    }
-    if (input$show_violin & nrow(dat) > 1) {
-      p <- p + geom_violin(draw_quantiles = 0.5,
-                           alpha = 0.3, show.legend = F)
-    }
-    if (input$show_boxplot & nrow(dat) > 1) {
-      p <- p + geom_boxplot(width = 0.25, alpha = 0.3, show.legend = F)
-    }
-
-    p
+    current_plot(dat, 
+                 points = input$show_points, 
+                 violin = input$show_violin, 
+                 boxplot = input$show_boxplot)
   })
 
   # . performance_plot ----
   output$performance_plot <- renderPlot({
     if (input$trinary) {
-      # TODO: too rigid, needs flexibility for other levels combos
-      app_vals$data %>%
-        mutate(bin = factor(real, levels = c(-0.8, -0.5, -0.2, 0, 0.2, 0.5, 0.8))) %>%
-        group_by(bin) %>%
-        summarise(correct = mean(correct)*100) %>%
-        ggplot(aes(bin, correct, fill = bin)) +
-        geom_col(show.legend = FALSE) +
-        xlab("The true effect size (d)") +
-        ylab("Percent correct") +
-        scale_x_discrete(drop = FALSE) +
-        scale_fill_manual(values = c("#DD4B39", "#DD4B39", "#DD4B39",
-                                     "#605CA8", 
-                                     "#0073B7", "#0073B7", "#0073B7"),
-                          drop = FALSE)
-        
+      app_vals$data %>% summary_tri_plot()
     } else {
-      app_vals$data %>%
-        ggplot(aes(real, guess_es)) +
-        geom_abline(slope = 1, intercept = 0, color = "grey30") +
-        geom_point() +
-        geom_smooth(method = "lm") +
-        xlab("The true effect size (d)") +
-        ylab("Your guessed effect size (d)") +
-        coord_cartesian(xlim = c(-3, 3), ylim = c(-3, 3))
+      app_vals$data %>% summary_guess_plot()
     }
   })
   
@@ -413,20 +371,7 @@ server <- function(input, output, session) {
   output$overall_plot <- renderPlot({
     input$submit_guess
     
-    loadData() %>%
-      mutate(bin = factor(real, levels = c(-0.8, -0.5, -0.2, 0, 0.2, 0.5, 0.8))) %>%
-      group_by(bin) %>%
-      summarise(correct = mean(correct)*100) %>%
-      ggplot(aes(bin, correct, fill = bin)) +
-      geom_col(show.legend = FALSE) +
-      xlab("The true effect size (d)") +
-      ylab("Percent correct") +
-      scale_x_discrete(drop = FALSE) +
-      scale_fill_manual(values = c("#DD4B39", "#DD4B39", "#DD4B39",
-                                   "#605CA8", 
-                                   "#0073B7", "#0073B7", "#0073B7"),
-                        drop = FALSE)
-      
+    loadData() %>% summary_tri_plot()
   })
   
   # . download session data ----

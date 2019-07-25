@@ -29,7 +29,7 @@ main_tab <- tabItem(
           h4("How much larger is group B (blue circle) than group A (red square)?"),
           # . . d_guess slide ----
           sliderInput("d_guess", NULL, 
-                      min = -3, max = 3, value = 0, step = 0.05)
+                      min = -1, max = 1, value = 0, step = 0.1)
       ),
       # . . sample_again button ----
       actionButton("sample_again", "Sample Again", width = "49%"),
