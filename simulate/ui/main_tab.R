@@ -1,6 +1,7 @@
 # main_tab ----
 main_tab <- tabItem(
   tabName = "main_tab",
+  p("This app will let you explore a few basic distributions that you can sample in R. Generating random samples is a good way to get better intuitions about what data look like."),
   p("Click on a distribution below or in the sidebar to explore the visualisations"),
   tags$ul(
     tags$li(a("Normal", href="#shiny-tab-norm_tab", "data-toggle" = "tab")),
