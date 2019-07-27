@@ -1,5 +1,6 @@
 # Libraries ----
 library(shiny)
+library(shinyjs)
 library(shinydashboard)
 library(dplyr)
 library(tidyr)
@@ -19,7 +20,7 @@ ui <- dashboardPage(
   dashboardHeader(title = "Guess"),
   sidebar,
   dashboardBody(
-    shinyjs::useShinyjs(), #add useShinyjs to be able to disable buttons upon making a choice.
+    useShinyjs(), #add useShinyjs to be able to disable buttons upon making a choice.
     tags$head(
       tags$link(rel = "stylesheet", 
                 type = "text/css", 
@@ -35,20 +36,20 @@ ui <- dashboardPage(
 # Define server logic ----
 server <- function(input, output, session) {
   # On start ----
-  shinyjs::addClass(selector = "body", class = "sidebar-collapse")
-  shinyjs::hide("submit_guess")
-  shinyjs::disable("sample_again")
-  shinyjs::disable("d_guess")
-  shinyjs::disable("guess_A")
-  shinyjs::disable("guess_0")
-  shinyjs::disable("guess_B")
+  addClass(selector = "body", class = "sidebar-collapse")
+  hide("submit_guess")
+  disable("sample_again")
+  disable("d_guess")
+  disable("guess_A")
+  disable("guess_0")
+  disable("guess_B")
   
   # toggle for trinary/continuous input ----
   observe({
-    shinyjs::toggle("trinary_input", condition = input$trinary)
-    shinyjs::toggle("continuous_input", condition = !input$trinary)
-    shinyjs::toggle("submit_guess", condition = !input$trinary)
-    shinyjs::toggleState("submit_guess", condition = !input$trinary)
+    toggle("trinary_input", condition = input$trinary)
+    toggle("continuous_input", condition = !input$trinary)
+    toggle("submit_guess", condition = !input$trinary)
+    toggleState("submit_guess", condition = !input$trinary)
   })
   
   # Set app_vals reactiveValues ----
@@ -90,24 +91,24 @@ server <- function(input, output, session) {
 
   # next_trial ----
   observeEvent(input$next_trial, {
-    shinyjs::enable("sample_again")
-    shinyjs::hide("next_trial")
-    shinyjs::enable("d_guess")
-    shinyjs::enable("guess_A")
-    shinyjs::enable("guess_0")
-    shinyjs::enable("guess_B")
+    enable("sample_again")
+    hide("next_trial")
+    enable("d_guess")
+    enable("guess_A")
+    enable("guess_0")
+    enable("guess_B")
     
-    # shinyjs::disable submit until an option is chosen
+    # disable submit until an option is chosen
     if (input$trinary) {
-      shinyjs::disable("submit_guess")
+      disable("submit_guess")
     } else {
-      shinyjs::show("submit_guess")
+      show("submit_guess")
     }
     
     # set button colours normal
-    shinyjs::removeClass(id = "guess_A", class = "A")
-    shinyjs::removeClass(id = "guess_0", class = "null")
-    shinyjs::removeClass(id = "guess_B", class = "B")
+    removeClass(id = "guess_A", class = "A")
+    removeClass(id = "guess_0", class = "null")
+    removeClass(id = "guess_B", class = "B")
     
     app_vals$feedback <- ""
     app_vals$direction <- ""
@@ -116,22 +117,29 @@ server <- function(input, output, session) {
     updateSliderInput(session, "d_guess", value = 0)
     
     # set sample effect size
-    #app_vals$es <- (rnorm(1, 0, 1) %>% 
-    #                  pmax(-3) %>% 
-    #                  pmin(3) * 2
-    #) %>% round(1) / 2
-    
     app_vals$es <- sample(c(-0.8, -0.5, -0.2, 0.2, 0.5, 0.8), 1)
     
-    # null effects 50% of the time
+    # null effects prob_null% of the time
     pn <- input$prob_null/100
     app_vals$es <- sample(c(0, app_vals$es), 1, prob = c(pn, 1-pn))
     
     # set offset (so one group isn't always at 0)
     app_vals$offset <- sample(seq(-1,1,by = 0.1), 1)
     
+    # generate dataset(s) up front (maybe speed things up?)
+    # sample_n <- input$n_obs*input$max_samples
+    # A <- rnorm(sample_n, app_vals$offset, 1)
+    # B <- rnorm(sample_n, app_vals$offset + app_vals$es, 1)
+    # app_vals$dat <- expand.grid(trial_n = 1:input$n_obs, 
+    #                    sample_n = 1:input$max_samples,
+    #                    group = c("A", "B")) %>%
+    #   mutate(val = c(A, B) %>% round(3) ) %>%
+    #   select(sample_n, trial_n, group, val)
+    # 
+    # app_vals$dat$group <- factor(dat$group, levels = c("A", "B"))
+    
     app_vals$sample_n <- 0
-    shinyjs::click("sample_again")
+    click("sample_again")
     
   }, ignoreNULL = TRUE)
 
@@ -145,7 +153,7 @@ server <- function(input, output, session) {
     
     # prevent further sampling after max_samples
     if (app_vals$sample_n >= input$max_samples) {
-      shinyjs::disable("sample_again")
+      disable("sample_again")
     }
     
     # simulate data
@@ -194,6 +202,7 @@ server <- function(input, output, session) {
   })
   output$esBox <- renderValueBox({
     color <- case_when(
+      app_vals$es_show == "?" ~ "black",
       app_vals$es_show == "A" ~ "red",
       app_vals$es_show < 0 ~ "red",
       app_vals$es_show == "0" ~ "purple",
@@ -208,35 +217,35 @@ server <- function(input, output, session) {
   # guess button actions ----
   observeEvent(input$guess_A, {
     app_vals$direction <- "A"
-    shinyjs::addClass(id = "guess_A", class = "A")
-    shinyjs::removeClass(id = "guess_0", class = "null")
-    shinyjs::removeClass(id = "guess_B", class = "B")
-    shinyjs::click("submit_guess")
+    addClass(id = "guess_A", class = "A")
+    removeClass(id = "guess_0", class = "null")
+    removeClass(id = "guess_B", class = "B")
+    click("submit_guess")
   })
   observeEvent(input$guess_0, {
     app_vals$direction <- "0"
-    shinyjs::removeClass(id = "guess_A", class = "A")
-    shinyjs::addClass(id = "guess_0", class = "null")
-    shinyjs::removeClass(id = "guess_B", class = "B")
-    shinyjs::click("submit_guess")
+    removeClass(id = "guess_A", class = "A")
+    addClass(id = "guess_0", class = "null")
+    removeClass(id = "guess_B", class = "B")
+    click("submit_guess")
   })
   observeEvent(input$guess_B, {
     app_vals$direction <- "B"
-    shinyjs::removeClass(id = "guess_A", class = "A")
-    shinyjs::removeClass(id = "guess_0", class = "null")
-    shinyjs::addClass(id = "guess_B", class = "B")
-    shinyjs::click("submit_guess")
+    removeClass(id = "guess_A", class = "A")
+    removeClass(id = "guess_0", class = "null")
+    addClass(id = "guess_B", class = "B")
+    click("submit_guess")
   })
 
   # submit_guess ----
   observeEvent(input$submit_guess, {
-    shinyjs::hide("submit_guess")
-    shinyjs::show("next_trial")
-    shinyjs::disable("sample_again")
-    shinyjs::disable("d_guess")
-    shinyjs::disable("guess_A")
-    shinyjs::disable("guess_0")
-    shinyjs::disable("guess_B")
+    hide("submit_guess")
+    show("next_trial")
+    disable("sample_again")
+    disable("d_guess")
+    disable("guess_A")
+    disable("guess_0")
+    disable("guess_B")
 
     if (input$trinary) {
       app_vals$guess_show <- app_vals$direction
