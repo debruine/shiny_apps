@@ -83,7 +83,8 @@ current_plot <- function(data,
   if (points) {
     pt_width <- min(50, (nrow(data)-1) * 0.004) # not > 50
     pt_size <- max(1, 5.6 - log(nrow(data))) # not < 1
-    p <- p + geom_jitter(show.legend = F, width = pt_width, size = pt_size)
+    p <- p + geom_point(show.legend = F, size = pt_size, 
+                        position = position_jitter(seed = 20, width = pt_width, height = 0))
   }
   if (violin & nrow(data) > 1) {
     p <- p + geom_violin(draw_quantiles = 0.5,

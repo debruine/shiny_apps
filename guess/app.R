@@ -360,6 +360,7 @@ server <- function(input, output, session) {
       dat <- app_vals$stats %>%
         filter(trial_n == input$next_trial)
     }
+    print(dat)
     
     current_plot(dat, 
                  points = input$show_points, 

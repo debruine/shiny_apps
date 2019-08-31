@@ -30,7 +30,8 @@ ui <- dashboardPage(
       main_tab,
       norm_tab,
       binom_tab,
-      pois_tab
+      pois_tab,
+      unif_tab
     )
   )
 )
@@ -42,6 +43,53 @@ server <- function(input, output, session) {
   norm_df <- reactiveVal()
   binom_df <- reactiveVal()
   pois_df <- reactiveVal()
+  unif_df <- reactiveVal()
+  
+  # create uniform sample ----
+  observeEvent(input$unif_sample, {
+    n <- isolate(input$unif_n) %>% as.integer()
+    min <- isolate(input$unif_min) %>% as.double()
+    max <- isolate(input$unif_max) %>% as.double()
+    
+    if (is.na(n) || n < 1) {
+      showNotification("The n was not valid; it must be >= 1")
+      n <- 1
+      updateNumericInput(session, "unif_n", value = n)
+    }
+    if (is.na(min) || min >= max) {
+      showNotification("The min was not valid; it must be < max")
+      min <- 0
+      updateNumericInput(session, "unif_min", value = min)
+    }
+    if (is.na(max) || max <= min) {
+      showNotification("The max was not valid; it must be > min")
+      max <- 1
+      updateNumericInput(session, "unif_max", value = max)
+    }
+    
+    new_df <- data.frame( 
+      sample = as.integer(input$unif_sample),
+      n = n,
+      min = min,
+      max = max,
+      x = runif(n, min, max)
+    )
+    
+    if (!is.null(unif_df())) {
+      new_df <- bind_rows(unif_df(), new_df)
+    }
+    
+    unif_df(new_df)
+  }, ignoreNULL = TRUE)
+  
+  observeEvent(input$unif_clear, {
+    unif_df(NULL)
+  })
+  
+  # unif_plot ----
+  output$unif_plot <- renderPlot({
+    plot_unif(unif_df())
+  })
   
   # create normal sample ----
   observeEvent(input$norm_sample, {

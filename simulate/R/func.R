@@ -1,6 +1,63 @@
-# simulate and plot a normal distribution
+plot_unif <- function(df) {
+  if (is.null(df)) return(ggplot() + theme_bw())
+  
+  if (length(unique(df$n)) == 1 && unique(df$n) == 1) {
+    # all N are 1
+    df1 <- df %>%
+      group_by(min, max) %>%
+      mutate(Sample = paste0("runif(", n(), ", ", min, ", ", max, ")")) %>%
+      ungroup()
+    
+    #ylim(min(df1$min)-0.5, max(df1$max)+0.5) +
+  } else {
+    df1 <- df %>%
+      mutate(Sample = paste0(LETTERS[sample - min(sample) + 1], 
+                             ": runif(", n, ", ", min, ", ", max, ")"))
+  }
+  
+  ncolumns <- ceiling(length(unique(df1$Sample))/5)
+  
+  p <- ggplot(df1, aes(x, fill = Sample))
+  
+  # make each facet as a separate layer to get bins and boundaries correct
+  for (s in unique(df1$Sample)) {
+    dat <- filter(df1, Sample == s)
+    bd <-  min(dat$min)
+    bw <- (max(dat$max) - bd)/20
+    p <- p + geom_histogram(data = dat, boundary = bd, 
+                            binwidth = bw, color = "black", alpha = 0.2,
+                            position = position_dodge(), show.legend = FALSE)
+  }
+  
+  p + facet_wrap(~Sample, ncol = ncolumns, dir = "v", scales = "free_y") +
+    theme_bw()
+}
 
 plot_norm <- function(df) {
+  if (is.null(df)) return(ggplot() + theme_bw())
+  
+  if (length(unique(df$n)) == 1 && unique(df$n) == 1) {
+    # all N are 1
+    df1 <- df %>%
+      group_by(mu, sd) %>%
+      mutate(Sample = paste0("rnorm(", n(), ", ", mu, ", ", sd, ")")) %>%
+      ungroup()
+  } else {
+    df1 <- df %>%
+      mutate(Sample = paste0(LETTERS[sample - min(sample) + 1], 
+                             ": rnorm(", n, ", ", mu, ", ", sd, ")"))
+  }
+  
+  ncolumns <- ceiling(length(unique(df1$Sample))/5)
+
+  ggplot(df1, aes(x, fill = Sample)) +
+    geom_histogram(bins = 50, color = "black", alpha = 0.2,
+                   position = position_dodge(), show.legend = FALSE) +
+    facet_wrap(~Sample, ncol = ncolumns, dir = "v", scales = "free_y") +
+    theme_bw()
+}
+
+plot_norm_density <- function(df) {
   if (is.null(df)) return(ggplot() + theme_bw())
   
   if (length(unique(df$n)) == 1 && unique(df$n) == 1) {

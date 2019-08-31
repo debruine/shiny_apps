@@ -13,7 +13,7 @@ sidebar <- dashboardSidebar(
   sliderInput("max_samples", "Maximum Samples", min = 1, max = 200, value = 200, step = 1),
   checkboxInput("one_two", "One at a time",value = T),
   checkboxInput("trinary", "Trinary Input",value = T),
-  checkboxInput("accumulate", "Accumulate",value = F),
+  checkboxInput("accumulate", "Accumulate",value = T),
   sliderInput("prob_null", "Null probability", min = 0, max = 100, value = 50, step = 5),
   p("This app is storing your data.")
 )

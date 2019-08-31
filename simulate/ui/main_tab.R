@@ -4,19 +4,46 @@ main_tab <- tabItem(
   p("This app will let you explore a few basic distributions that you can sample in R. Generating random samples is a good way to get better intuitions about what data look like."),
   p("Click on a distribution below or in the sidebar to explore the visualisations"),
   tags$ul(
-    tags$li(a("Normal", href="#shiny-tab-norm_tab", "data-toggle" = "tab")),
+    tags$li(a("Uniform", href="#shiny-tab-unif_tab", "data-toggle" = "tab")),
     tags$li(a("Binomial", href="#shiny-tab-binom_tab", "data-toggle" = "tab")),
+    tags$li(a("Normal", href="#shiny-tab-norm_tab", "data-toggle" = "tab")),
     tags$li(a("Poisson", href="#shiny-tab-pois_tab", "data-toggle" = "tab"))
   )
+)
+
+# unif_tab ----
+unif_tab <- tabItem(
+  tabName = "unif_tab",
+  p("The uniform distribution is the simplest distribution. All numbers in the range have an equal probability of being sampled. P-values have a uniform distribution under the null hypothesis (i.e., when there is no effect, all numbers between 0 and 1 are equally probable)."),
+  #box(title = "Tasks", width = 12,
+  tags$ul(
+    tags$li("Set n = 1000, min = 0, and max = 1. Plot data by clicking the 'Sample Again' button. Do this 5 times. How much does the distribution change between samples?"),
+    tags$li("Clear the samples and plot 5 sets of data with n = 10. Does the distribution change more or less?"),
+    tags$li("Set n = 100 and min = 0. Plot data with max of 1, 10, 100, and 1000"), 
+    tags$li("Clear the samples and set n = 1, min = 0, and max = 1. Now each sample adds to the overall distribution. How many times do you need to sample to get a value < 0.05 (i.e., in the first bin)?")
+  ),
+  #    collapsible = TRUE, collapsed = TRUE),
+  div(class="func-spec",
+      span("runif(n = "),
+      numericInput("unif_n", NULL, 100, 1, 1000, 1),
+      span(", min = "),
+      numericInput("unif_min", NULL, 0, NA, NA, 1),
+      span(", max = "),
+      numericInput("unif_max", NULL, 1, NA, NA, 1),
+      span(")")
+  ),
+  actionButton("unif_sample", "Sample Again"),
+  actionButton("unif_clear", "Clear Samples"),
+  plotOutput("unif_plot", height = "500px")
 )
 
 # norm_tab ----
 norm_tab <- tabItem(
   tabName = "norm_tab",
-  p("The normal distribution is useful for modeling continuous data like reaction times."),
+  p("The normal distribution is useful for modeling continuous data like accuracy over a large number of trials."),
   #box(title = "Tasks", width = 12,
       tags$ul(
-        tags$li("Set n = 100, mean = 0, and sd = 1. Plot data by clicking the 'Sample Again' button. Do this 5 times. How much does the distribution change between samples?"),
+        tags$li("Set n = 1000, mean = 0, and sd = 1. Plot data by clicking the 'Sample Again' button. Do this 5 times. How much does the distribution change between samples?"),
         tags$li("Clear the samples and plot 5 sets of data with n = 10. Does the distribution change more or less?"),
         tags$li("Set n = 100 and sd = 1. Plot data with means of -2, -1, 0, 1 and 2."), 
         tags$li("Set n = 100 and mean = 0. Plot data with SDs of 2, 1.5, 1, 0.8, 0.6, 0.4, and 0.2. What happens to the range of the data as SD gets smaller?"), 
@@ -27,9 +54,9 @@ norm_tab <- tabItem(
       span("rnorm(n = "),
       numericInput("norm_n", NULL, 100, 1, 1000, 1),
       span(", mean = "),
-      numericInput("norm_mu", NULL, 0, -1000, 1000, 1),
+      numericInput("norm_mu", NULL, 0, NA, NA, 1),
       span(", sd = "),
-      numericInput("norm_sd", NULL, 1, 0, 1000, 0.5),
+      numericInput("norm_sd", NULL, 1, 0, NA, 0.5),
       span(")")
   ),
   actionButton("norm_sample", "Sample Again"),
@@ -57,7 +84,7 @@ binom_tab <- tabItem(
       span("rbinom(n = "),
       numericInput("binom_n", NULL, 100, 1, 1000, 1),
       span(", size = "),
-      numericInput("binom_size", NULL, 10, 1, 100, 1),
+      numericInput("binom_size", NULL, 10, 1, NA, 1),
       span(", prob = "),
       numericInput("binom_prob", NULL, 0.5, 0, 1, 0.1),
       span(")")
@@ -84,7 +111,7 @@ pois_tab <- tabItem(
       span("rpois(n = "),
       numericInput("pois_n", NULL, 100, 1, 1000, 1),
       span(", lambda = "),
-      numericInput("pois_lambda", NULL, 5, 0, 100, 1),
+      numericInput("pois_lambda", NULL, 5, 0, NA, 1),
       span(")")
   ),
   actionButton("pois_sample", "Sample Again"),
