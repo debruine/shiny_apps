@@ -72,12 +72,14 @@ current_plot <- function(data,
                          violin  = FALSE, 
                          boxplot = FALSE,
                          barplot = FALSE, 
-                         stats = FALSE) {
+                         stats = FALSE,
+                         m1 = 0, m2 = 0, sd = 1) {
   p <- data %>%
     ggplot(aes(group, val, color = group, shape = group)) +
-    coord_cartesian(ylim = c(-4, 4)) +
+    coord_cartesian(ylim = c(-4, 4.5)) +
     ylab("") +
     scale_x_discrete(drop = F) +
+    scale_y_continuous(breaks = c(-4, -2, 0, 2, 4)) +
     scale_colour_manual(values = c("red", "steelblue3"), drop = F) +
     scale_shape_manual(values = c(15, 19), drop = F) +
     theme_minimal()
@@ -123,12 +125,18 @@ current_plot <- function(data,
     p <- p + stat_summary(fun.data = function(x) {
       m <- mean(x) %>% round(2)
       s <- sd(x) %>% round(2)
-      l <- paste0("M = ", m, ", SD = ", s)
-      data.frame(y = 3.9, label = l)
+      l <- paste0("sample M = ", m, ", SD = ", s)
+      data.frame(y = 3.8, label = l)
     }, geom = "text", size = 5) +
-      annotate("text", y = 4.2, x = 1.5, 
-               label = paste0("d = ", round(d, 2)),
-               size = 5)
+      annotate("text", y = 4.5, x = 1.5, 
+               label = paste0("sample d = ", round(d, 2)),
+               size = 5) +
+      annotate("text", y = 4.2, x = 1, 
+               label = paste0("pop M = ", m1, ", SD = ", sd),
+               color = "red", size = 5) +
+      annotate("text", y = 4.2, x = 2, 
+               label = paste0("pop M = ", m2, ", SD = ", sd),
+               color = "steelblue3", size = 5)
   }
   
   p + theme(legend.position = "none")

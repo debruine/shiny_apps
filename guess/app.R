@@ -377,7 +377,10 @@ server <- function(input, output, session) {
                  violin = input$show_violin, 
                  boxplot = input$show_boxplot,
                  barplot = input$show_barplot,
-                 stats = input$show_debug)
+                 stats = input$show_debug,
+                 m1 = app_vals$offset,
+                 m2 = app_vals$offset + (app_vals$es * app_vals$sd),
+                 sd = app_vals$sd)
   })
 
   # . performance_plot ----
