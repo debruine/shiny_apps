@@ -36,9 +36,9 @@ ui <- dashboardPage(
 # Define server logic ----
 server <- function(input, output, session) {
   # On start ----
-  addClass(selector = "body", class = "sidebar-collapse")
   hide("submit_guess")
   disable("sample_again")
+  hide("sample_again")
   disable("d_guess")
   disable("guess_A")
   disable("guess_0")
@@ -73,6 +73,7 @@ server <- function(input, output, session) {
       paste(collapse = ""),
     stats = data.frame(),
     offset = 0,
+    sd = 1,
     es = 0,
     es_show = "?",
     guess_show = "?",
@@ -80,6 +81,11 @@ server <- function(input, output, session) {
     feedback = "",
     direction = ""
   )
+  
+  # debug outputs ----
+  output$debug_es <- renderText( paste("ES =", app_vals$es) )
+  output$debug_offset <- renderText( paste("Offset =", app_vals$offset) )
+  output$debug_sd <- renderText( paste("SD =", app_vals$sd) )
   
   output$guess_correct <- renderText({
     sprintf(
@@ -92,6 +98,7 @@ server <- function(input, output, session) {
   # next_trial ----
   observeEvent(input$next_trial, {
     enable("sample_again")
+    show("sample_again")
     hide("next_trial")
     enable("d_guess")
     enable("guess_A")
@@ -124,7 +131,8 @@ server <- function(input, output, session) {
     app_vals$es <- sample(c(0, app_vals$es), 1, prob = c(pn, 1-pn))
     
     # set offset (so one group isn't always at 0)
-    app_vals$offset <- sample(seq(-1,1,by = 0.1), 1)
+    app_vals$offset <- sample(seq(-1, 1, by = 0.25), 1)
+    app_vals$sd <- 1 #sample(seq(0.5, 2, by = 0.1), 1)
     
     # generate dataset(s) up front (maybe speed things up?)
     # sample_n <- input$n_obs*input$max_samples
@@ -154,11 +162,12 @@ server <- function(input, output, session) {
     # prevent further sampling after max_samples
     if (app_vals$sample_n >= input$max_samples) {
       disable("sample_again")
+      hide("sample_again")
     }
     
     # simulate data
-    A <-  rnorm(input$n_obs, app_vals$offset, 1)
-    B <- rnorm(input$n_obs, app_vals$offset + app_vals$es, 1)
+    A <-  rnorm(input$n_obs, app_vals$offset, app_vals$sd)
+    B <- rnorm(input$n_obs, app_vals$offset + (app_vals$es * app_vals$sd), app_vals$sd)
     dat <- data.frame(
       group = rep(c("A", "B"), each = input$n_obs),
       val = c(A, B) %>% round(3)
@@ -242,6 +251,7 @@ server <- function(input, output, session) {
     hide("submit_guess")
     show("next_trial")
     disable("sample_again")
+    hide("sample_again")
     disable("d_guess")
     disable("guess_A")
     disable("guess_0")
@@ -284,6 +294,7 @@ server <- function(input, output, session) {
               violin = input$show_violin,
               boxplot = input$show_boxplot,
               points = input$show_points,
+              barplot = input$show_barplot,
               trinary = input$trinary,
               one_two = input$one_two,
               accumulate = input$accumulate))
@@ -360,12 +371,12 @@ server <- function(input, output, session) {
       dat <- app_vals$stats %>%
         filter(trial_n == input$next_trial)
     }
-    print(dat)
     
     current_plot(dat, 
                  points = input$show_points, 
                  violin = input$show_violin, 
-                 boxplot = input$show_boxplot)
+                 boxplot = input$show_boxplot,
+                 barplot = input$show_barplot)
   })
 
   # . performance_plot ----

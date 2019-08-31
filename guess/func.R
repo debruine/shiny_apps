@@ -70,7 +70,8 @@ summary_guess_plot <- function(data) {
 current_plot <- function(data, 
                          points  = FALSE, 
                          violin  = FALSE, 
-                         boxplot = FALSE) {
+                         boxplot = FALSE,
+                         barplot = FALSE) {
   p <- data %>%
     ggplot(aes(group, val, color = group, shape = group)) +
     coord_cartesian(ylim = c(-4, 4)) +
@@ -80,18 +81,32 @@ current_plot <- function(data,
     scale_shape_manual(values = c(15, 19), drop = F) +
     theme_minimal()
   
+  if (barplot) {
+    p <- p + 
+      stat_summary(fun.y=mean,
+                   position=position_dodge(width=0.95),
+                   geom="bar", fill = "white",
+                   show.legend = FALSE) +
+      stat_summary(fun.data=mean_cl_normal,
+                   position=position_dodge(0.95),
+                   geom="errorbar", width = 0.25,
+                   show.legend = FALSE)
+  }
+  
   if (points) {
     pt_width <- min(50, (nrow(data)-1) * 0.004) # not > 50
     pt_size <- max(1, 5.6 - log(nrow(data))) # not < 1
-    p <- p + geom_point(show.legend = F, size = pt_size, 
+    p <- p + geom_point(show.legend = FALSE, size = pt_size, 
                         position = position_jitter(seed = 20, width = pt_width, height = 0))
   }
+  
   if (violin & nrow(data) > 1) {
     p <- p + geom_violin(draw_quantiles = 0.5,
-                         alpha = 0.3, show.legend = F)
+                         alpha = 0.3, show.legend = FALSE)
   }
+  
   if (boxplot & nrow(data) > 1) {
-    p <- p + geom_boxplot(width = 0.25, alpha = 0.3, show.legend = F)
+    p <- p + geom_boxplot(width = 0.25, alpha = 0.3, show.legend = FALSE)
   }
   
   p
