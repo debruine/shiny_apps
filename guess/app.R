@@ -82,11 +82,6 @@ server <- function(input, output, session) {
     direction = ""
   )
   
-  # debug outputs ----
-  output$debug_es <- renderText( paste("ES =", app_vals$es) )
-  output$debug_offset <- renderText( paste("Offset =", app_vals$offset) )
-  output$debug_sd <- renderText( paste("SD =", app_vals$sd) )
-  
   output$guess_correct <- renderText({
     sprintf(
       "You have answered %i of %i trials correctly.",

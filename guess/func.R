@@ -128,7 +128,7 @@ current_plot <- function(data,
       l <- paste0("sample M = ", m, ", SD = ", s)
       data.frame(y = 3.8, label = l)
     }, geom = "text", size = 5) +
-      annotate("text", y = 4.5, x = 1.5, 
+      annotate("text", y = 4.6, x = 1.5, 
                label = paste0("sample d = ", round(d, 2)),
                size = 5) +
       annotate("text", y = 4.2, x = 1, 

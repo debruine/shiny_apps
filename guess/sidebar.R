@@ -7,11 +7,6 @@ sidebar <- dashboardSidebar(
   ),
   
   checkboxInput("show_debug", "Debug", value = T),
-  tags$ul(
-    tags$li(textOutput("debug_es")),
-    tags$li(textOutput("debug_offset")),
-    tags$li(textOutput("debug_sd"))
-  ),
   
   tags$a("Code on GitHub", href = "https://github.com/debruine/shiny/blob/master/guess/app.R"),
   h4("Display Options"),
