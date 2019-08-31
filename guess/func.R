@@ -73,7 +73,7 @@ current_plot <- function(data,
                          boxplot = FALSE) {
   p <- data %>%
     ggplot(aes(group, val, color = group, shape = group)) +
-    ylim(-3, 3) +
+    coord_cartesian(ylim = c(-4, 4)) +
     ylab("") +
     scale_x_discrete(drop = F) +
     scale_colour_manual(values = c("red", "steelblue3"), drop = F) +
