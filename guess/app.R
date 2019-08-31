@@ -376,7 +376,8 @@ server <- function(input, output, session) {
                  points = input$show_points, 
                  violin = input$show_violin, 
                  boxplot = input$show_boxplot,
-                 barplot = input$show_barplot)
+                 barplot = input$show_barplot,
+                 stats = input$show_debug)
   })
 
   # . performance_plot ----

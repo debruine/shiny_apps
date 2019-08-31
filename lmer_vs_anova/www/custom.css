@@ -5,3 +5,7 @@
 .sidebar .box-title {
   color: white;
 }
+
+.sidebar .box, .sidebar .box * {
+  background: #333333 !important;
+}

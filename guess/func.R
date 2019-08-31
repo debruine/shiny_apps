@@ -71,7 +71,8 @@ current_plot <- function(data,
                          points  = FALSE, 
                          violin  = FALSE, 
                          boxplot = FALSE,
-                         barplot = FALSE) {
+                         barplot = FALSE, 
+                         stats = FALSE) {
   p <- data %>%
     ggplot(aes(group, val, color = group, shape = group)) +
     coord_cartesian(ylim = c(-4, 4)) +
@@ -85,29 +86,50 @@ current_plot <- function(data,
     p <- p + 
       stat_summary(fun.y=mean,
                    position=position_dodge(width=0.95),
-                   geom="bar", fill = "white",
-                   show.legend = FALSE) +
+                   geom="bar", fill = "white") +
       stat_summary(fun.data=mean_cl_normal,
                    position=position_dodge(0.95),
-                   geom="errorbar", width = 0.25,
-                   show.legend = FALSE)
+                   geom="errorbar", width = 0.25)
   }
   
   if (points) {
-    pt_width <- min(50, (nrow(data)-1) * 0.004) # not > 50
+    pt_width <- .45 #min(.45, (nrow(data)-1) * 0.004) # not > 40
     pt_size <- max(1, 5.6 - log(nrow(data))) # not < 1
-    p <- p + geom_point(show.legend = FALSE, size = pt_size, 
+    p <- p + geom_point(size = pt_size, 
                         position = position_jitter(seed = 20, width = pt_width, height = 0))
   }
   
   if (violin & nrow(data) > 1) {
     p <- p + geom_violin(draw_quantiles = 0.5,
-                         alpha = 0.3, show.legend = FALSE)
+                         alpha = 0.3)
   }
   
   if (boxplot & nrow(data) > 1) {
-    p <- p + geom_boxplot(width = 0.25, alpha = 0.3, show.legend = FALSE)
+    p <- p + geom_boxplot(width = 0.25, alpha = 0.3)
   }
   
-  p
+  if (stats) {
+    means <- data %>%
+      add_row(group = "B", val = NA) %>%
+      group_by(group) %>%
+      summarise(m = mean(val, na.rm = TRUE),
+                sd = sd(val, na.rm = TRUE)) %>%
+      ungroup() %>%
+      mutate(sd_pooled = sqrt(mean(sd))) %>%
+      select(-sd) %>%
+      spread(group, m)
+    d <- (means$B - means$A)/means$sd_pooled
+
+    p <- p + stat_summary(fun.data = function(x) {
+      m <- mean(x) %>% round(2)
+      s <- sd(x) %>% round(2)
+      l <- paste0("M = ", m, ", SD = ", s)
+      data.frame(y = 3.9, label = l)
+    }, geom = "text", size = 5) +
+      annotate("text", y = 4.2, x = 1.5, 
+               label = paste0("d = ", round(d, 2)),
+               size = 5)
+  }
+  
+  p + theme(legend.position = "none")
 }
