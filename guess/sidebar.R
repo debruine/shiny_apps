@@ -24,7 +24,7 @@ sidebar <- dashboardSidebar(
   actionButton("setting_1", "One at a time", width = "80%"),
   actionButton("setting_c", "Continuous", width = "80%"),
   actionButton("setting_debug", "Debug", width = "80%"),
-  checkboxInput("show_debug", "Debug", value = T),
+  checkboxInput("show_debug", "Debug", value = def$show_debug),
   
   tags$a("Code on GitHub", href = "https://github.com/debruine/shiny/blob/master/guess/app.R"),
   h4("Display Options"),

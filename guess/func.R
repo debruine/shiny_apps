@@ -130,13 +130,13 @@ current_plot <- function(data,
       data.frame(y = 3.8, label = l)
     }, geom = "text", size = 5) +
       annotate("text", y = 4.6, x = 1.5, 
-               label = paste0("sample d = ", round(d, 2)),
+               label = sprintf("sample d = %1.2f", d),
                size = 5) +
       annotate("text", y = 4.2, x = 1, 
-               label = paste0("pop M = ", round(m1, 2), ", SD = ", sd),
+               label = sprintf("pop M = %1.2f, SD = %1.2f", m1, sd),
                color = "red", size = 5) +
       annotate("text", y = 4.2, x = 2, 
-               label = paste0("pop M = ", round(m2, 2), ", SD = ", sd),
+               label = sprintf("pop M = %1.2f, SD = %1.2f", m2, sd),
                color = "steelblue3", size = 5)
   }
   

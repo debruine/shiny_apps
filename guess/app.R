@@ -83,7 +83,8 @@ server <- function(input, output, session) {
     FP = 0,
     FN = 0,
     TP = 0,
-    TN = 0
+    TN = 0,
+    guessing = FALSE # flag for display
   )
   
   output$guess_correct <- renderUI(HTML({
@@ -163,6 +164,7 @@ server <- function(input, output, session) {
 
   # next_trial ----
   observeEvent(input$next_trial, {
+    app_vals$guessing <- FALSE
     enable("sample_again")
     show("sample_again")
     hide("next_trial")
@@ -232,8 +234,10 @@ server <- function(input, output, session) {
     }
     
     # simulate data
-    A <-  rnorm(input$n_obs, app_vals$offset, app_vals$sd)
-    B <- rnorm(input$n_obs, app_vals$offset + (app_vals$es * app_vals$sd), app_vals$sd)
+    A <-  rnorm(input$n_obs, app_vals$offset, app_vals$sd) %>% pmin(4) %>% pmax(-4)
+    B <- rnorm(input$n_obs, app_vals$offset + (app_vals$es * app_vals$sd), app_vals$sd) %>% pmin(4) %>% pmax(-4)
+    #A <- truncnorm::rtruncnorm(input$n_obs, -4, 4, app_vals$offset, app_vals$sd)
+    #B <- truncnorm::rtruncnorm(input$n_obs, -4, 4, app_vals$offset + (app_vals$es * app_vals$sd), app_vals$sd)
     dat <- data.frame(
       group = rep(c("A", "B"), each = input$n_obs),
       val = c(A, B) %>% round(3)
@@ -314,6 +318,7 @@ server <- function(input, output, session) {
 
   # submit_guess ----
   observeEvent(input$submit_guess, {
+    app_vals$guessing <- TRUE # set flag for display
     hide("submit_guess")
     show("next_trial")
     disable("sample_again")
@@ -451,17 +456,18 @@ server <- function(input, output, session) {
     dat <- simdata()
     
     # TODO: show accumulate on submit_guess
-    if (input$accumulate & input$n_obs == 1) {
+    if ((input$accumulate | app_vals$guessing) & 
+        input$n_obs == 1) {
       dat <- app_vals$stats %>%
         filter(trial_n == input$next_trial)
     }
     
     current_plot(dat, 
                  points = input$show_points, 
-                 violin = input$show_violin, 
+                 violin = (input$show_violin | app_vals$guessing), 
                  boxplot = input$show_boxplot,
                  barplot = input$show_barplot,
-                 stats = input$show_debug,
+                 stats = (input$show_debug | app_vals$guessing),
                  m1 = app_vals$offset,
                  m2 = app_vals$offset + (app_vals$es * app_vals$sd),
                  sd = app_vals$sd)
