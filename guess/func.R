@@ -133,10 +133,10 @@ current_plot <- function(data,
                label = paste0("sample d = ", round(d, 2)),
                size = 5) +
       annotate("text", y = 4.2, x = 1, 
-               label = paste0("pop M = ", m1, ", SD = ", sd),
+               label = paste0("pop M = ", round(m1, 2), ", SD = ", sd),
                color = "red", size = 5) +
       annotate("text", y = 4.2, x = 2, 
-               label = paste0("pop M = ", m2, ", SD = ", sd),
+               label = paste0("pop M = ", round(m2, 2), ", SD = ", sd),
                color = "steelblue3", size = 5)
   }
   

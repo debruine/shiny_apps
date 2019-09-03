@@ -83,10 +83,13 @@ server <- function(input, output, session) {
   )
   
   output$guess_correct <- renderText({
+    cor <- sum(app_vals$data$correct)
+    tot <- length(app_vals$data$correct)
     sprintf(
-      "You have answered %i of %i trials correctly.",
-      sum(app_vals$data$correct),
-      length(app_vals$data$correct)
+      "You have answered %2.0f%% (%i of %i) trials correctly.",
+      ifelse(tot == 0, 0, round(100*cor/tot)),
+      cor,
+      tot
     )
   })
   
@@ -379,15 +382,13 @@ server <- function(input, output, session) {
       )
     }
 
-    means <- trial_dat %>%
+    stats <- trial_dat %>%
       add_row(group = "B", val = NA) %>%
       group_by(group) %>%
       summarise(m = mean(val, na.rm = TRUE),
                 sd = sd(val, na.rm = TRUE)) %>%
       ungroup() %>%
-      mutate(sd_pooled = sqrt(mean(sd))) %>%
-      select(-sd) %>%
-      spread(group, m)
+      mutate(sd_pooled = sqrt(mean(sd)))
     
     pwr_text <- ""
     if (app_vals$es != 0 & nrow(trial_dat) > 3) {
@@ -399,18 +400,17 @@ server <- function(input, output, session) {
     }
     
     app_vals$feedback <- sprintf(
-      "<h3>%s In this trial, A was %s than B with a true effect size of %.2f. %s</h3>
-      
-      <h3>Across the %i data points you observed in this trial, A had a mean of %1.2f, B had a mean of %1.2f, and the observed effect size was d = %1.2f%s.</h3>",
+      "<h3>%s Across the %i data points you observed in this trial, A had a mean of %1.2f (SD = %1.2f), B had a mean of %1.2f (SD = %1.2f), and the observed effect size was d = %1.2f %s</h3>
+      <h3>The true population effect size in this trial was %1.2f.</h3>",
       correct_text, 
-      real_dir, 
-      app_vals$es, 
-      pwr_text,
       nrow(trial_dat),
-      means$A,
-      means$B,
-      (means$B - means$A)/means$sd_pooled ,
-      t_text
+      stats$m[1],
+      stats$sd[1],
+      stats$m[2],
+      stats$sd[1],
+      (stats$m[2] - stats$m[1])/stats$sd_pooled[1],
+      t_text,
+      app_vals$es
     )
     
     saveData(app_vals$data, app_vals$stats, app_vals$id)
@@ -438,13 +438,13 @@ server <- function(input, output, session) {
   })
 
   # . performance_plot ----
-  output$performance_plot <- renderPlot({
-    if (input$trinary) {
-      app_vals$data %>% summary_tri_plot()
-    } else {
-      app_vals$data %>% summary_guess_plot()
-    }
-  })
+  # output$performance_plot <- renderPlot({
+  #   if (input$trinary) {
+  #     app_vals$data %>% summary_tri_plot()
+  #   } else {
+  #     app_vals$data %>% summary_guess_plot()
+  #   }
+  # })
   
   # . overall_plot ----
   output$overall_plot <- renderPlot({
