@@ -259,9 +259,9 @@ server <- function(input, output, session) {
   })
   output$guessBox <- renderValueBox({
     color <- case_when(
-      app_vals$direction == "A" ~ "red",
-      app_vals$direction == "0" ~ "purple",
-      app_vals$direction == "B" ~ "blue",
+      app_vals$direction == "A>B" ~ "red",
+      app_vals$direction == "A=B" ~ "purple",
+      app_vals$direction == "B>A" ~ "blue",
       TRUE ~ "black"
     )
     valueBox(app_vals$guess_show, "Your Guess",color = color)
@@ -269,10 +269,10 @@ server <- function(input, output, session) {
   output$esBox <- renderValueBox({
     color <- case_when(
       app_vals$es_show == "?" ~ "black",
-      app_vals$es_show == "A" ~ "red",
+      app_vals$es_show == "A>B" ~ "red",
       app_vals$es_show < 0 ~ "red",
-      app_vals$es_show == "0" ~ "purple",
-      app_vals$es_show == "B" ~ "blue",
+      app_vals$es_show == "A=B" ~ "purple",
+      app_vals$es_show == "B>A" ~ "blue",
       app_vals$es_show > 0 ~ "blue",
       TRUE ~ "black"
     )
@@ -282,21 +282,21 @@ server <- function(input, output, session) {
   
   # guess button actions ----
   observeEvent(input$guess_A, {
-    app_vals$direction <- "A"
+    app_vals$direction <- "A>B"
     addClass(id = "guess_A", class = "A")
     removeClass(id = "guess_0", class = "null")
     removeClass(id = "guess_B", class = "B")
     click("submit_guess")
   })
   observeEvent(input$guess_0, {
-    app_vals$direction <- "0"
+    app_vals$direction <- "A=B"
     removeClass(id = "guess_A", class = "A")
     addClass(id = "guess_0", class = "null")
     removeClass(id = "guess_B", class = "B")
     click("submit_guess")
   })
   observeEvent(input$guess_B, {
-    app_vals$direction <- "B"
+    app_vals$direction <- "B>A"
     removeClass(id = "guess_A", class = "A")
     removeClass(id = "guess_0", class = "null")
     addClass(id = "guess_B", class = "B")
@@ -318,15 +318,15 @@ server <- function(input, output, session) {
       app_vals$guess_show <- app_vals$direction
       guess <- NA
       app_vals$es_show <- case_when(
-        app_vals$es < 0 ~ "A",
-        app_vals$es == 0 ~ "0",
-        app_vals$es > 0 ~ "B"
+        app_vals$es < 0 ~ "A>B",
+        app_vals$es == 0 ~ "A=B",
+        app_vals$es > 0 ~ "B>A"
       )
     } else {
       app_vals$direction <- case_when(
-        input$d_guess < 0 ~ "A",
-        input$d_guess == 0 ~ "0",
-        input$d_guess > 0 ~ "B"
+        input$d_guess < 0 ~ "A>B",
+        input$d_guess == 0 ~ "A=B",
+        input$d_guess > 0 ~ "B>A"
       )
       guess <- input$d_guess
       app_vals$guess_show <- guess
@@ -334,9 +334,9 @@ server <- function(input, output, session) {
     }
     
     correct <- case_when(
-      app_vals$es < 0    & app_vals$direction == "A" ~ TRUE,
-      app_vals$es == "0" & app_vals$direction == "0"~ TRUE,
-      app_vals$es > 0    & app_vals$direction == "B" ~ TRUE,
+      app_vals$es < 0    & app_vals$direction == "A>B" ~ TRUE,
+      app_vals$es == "0" & app_vals$direction == "A=B"~ TRUE,
+      app_vals$es > 0    & app_vals$direction == "B>A" ~ TRUE,
       TRUE ~ FALSE
     )
     
@@ -362,8 +362,6 @@ server <- function(input, output, session) {
       app_vals$es == "0" ~ "the same size as",
       app_vals$es > 0 ~ "smaller"
     )
-    
-    correct_text <- ifelse(correct, "Correct!", "Incorrect.")
     
     # get data from this trial
     trial_dat <-  filter(app_vals$stats, 
@@ -399,17 +397,30 @@ server <- function(input, output, session) {
       )
     }
     
+    correct_text <- case_when(
+      app_vals$es < 0    & app_vals$direction == "A>B" ~ "Correct, this is a true positive. There was a real effect in the population and you correctly detected it.",
+      app_vals$es > 0    & app_vals$direction == "B>A" ~ "Correct, this is a true positive. There was a real effect in the population and you correctly detected it.",
+      app_vals$es == "0" & app_vals$direction == "A=B"~ "Correct, this is a true negative. There was no real effect in the population and you correctly rejected it.",
+      app_vals$es == "0" & app_vals$direction != "A=B"~ "Incorrect, this is a type 1 error, or false positive. There was no real effect in the population but you incorrectly identified one.",
+      TRUE ~ "Incorrect, this is a type 2 error, or false negative. There was a real effect in the population but you incorrectly rejected it."
+    )
+    
     app_vals$feedback <- sprintf(
-      "<h3>%s Across the %i data points you observed in this trial, A had a mean of %1.2f (SD = %1.2f), B had a mean of %1.2f (SD = %1.2f), and the observed effect size was d = %1.2f %s</h3>
-      <h3>The true population effect size in this trial was %1.2f.</h3>",
+      "<h3>%s</h3>
+      <h3>Across the %i data points you observed in this trial, A had a mean of %1.2f (SD = %1.2f), B had a mean of %1.2f (SD = %1.2f), and the observed effect size was d = %1.2f%s.</h3>
+      <h3>These data were sampled from a population where A had a mean of %1.2f (SD = %1.2f), B had a mean of %1.2f (SD = %1.2f), and the true effect size was d = %1.2f.</h3>",
       correct_text, 
       nrow(trial_dat),
       stats$m[1],
       stats$sd[1],
       stats$m[2],
-      stats$sd[1],
+      stats$sd[2],
       (stats$m[2] - stats$m[1])/stats$sd_pooled[1],
       t_text,
+      app_vals$offset, 
+      app_vals$sd, 
+      app_vals$offset + (app_vals$sd*app_vals$es),
+      app_vals$sd, 
       app_vals$es
     )
     
