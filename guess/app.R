@@ -89,6 +89,65 @@ server <- function(input, output, session) {
       length(app_vals$data$correct)
     )
   })
+  
+  # settings ----
+  presets <- function(pre) {
+    cbs <- c("show_violin", "show_boxplot", "show_points", "show_barplot",
+             "one_two", "trinary", "accumulate", "show_debug")
+    num <- c("n_obs", "max_samples", "prob_null")
+    
+    lapply(cbs, function(x) {
+      updateCheckboxInput(session, x, value = pre[[x]])
+    })
+    lapply(num, function(x) {
+      updateSliderInput(session, x, value = pre[[x]])
+    })
+  }
+  observeEvent(input$setting_debug, {
+    list(
+      show_violin = T,
+      show_boxplot = F,
+      show_points = T,
+      show_barplot = F,
+      n_obs = 1,
+      max_samples = 200,
+      one_two = T,
+      trinary = T,
+      accumulate = T,
+      prob_null = 50,
+      show_debug = T
+    ) %>% presets()
+  })
+  observeEvent(input$setting_1, {
+    list(
+      show_violin = F,
+      show_boxplot = F,
+      show_points = T,
+      show_barplot = F,
+      n_obs = 1,
+      max_samples = 200,
+      one_two = T,
+      trinary = T,
+      accumulate = F,
+      prob_null = 50,
+      show_debug = F
+    ) %>% presets() 
+  })
+  observeEvent(input$setting_c, {
+    list(
+      show_violin = T,
+      show_boxplot = F,
+      show_points = T,
+      show_barplot = F,
+      n_obs = 50,
+      max_samples = 1,
+      one_two = F,
+      trinary = F,
+      accumulate = T,
+      prob_null = 10,
+      show_debug = F
+    ) %>% presets() 
+  })
 
   # next_trial ----
   observeEvent(input$next_trial, {
@@ -127,7 +186,7 @@ server <- function(input, output, session) {
     
     # set offset (so one group isn't always at 0)
     app_vals$offset <- sample(seq(-1, 1, by = 0.25), 1)
-    app_vals$sd <- 1 #sample(seq(0.5, 2, by = 0.1), 1)
+    app_vals$sd <- sample(seq(0.5, 1, by = 0.1), 1)
     
     # generate dataset(s) up front (maybe speed things up?)
     # sample_n <- input$n_obs*input$max_samples

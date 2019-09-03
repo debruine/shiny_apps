@@ -95,7 +95,8 @@ current_plot <- function(data,
   }
   
   if (points) {
-    pt_width <- .45 #min(.45, (nrow(data)-1) * 0.004) # not > 40
+    pt_width <- ifelse(nrow(data)==1, 0, .45) 
+    #pt_width <- min(.45, (nrow(data)-1) * 0.004)
     pt_size <- max(1, 5.6 - log(nrow(data))) # not < 1
     p <- p + geom_point(size = pt_size, 
                         position = position_jitter(seed = 20, width = pt_width, height = 0))
