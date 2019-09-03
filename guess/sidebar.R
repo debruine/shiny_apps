@@ -1,6 +1,6 @@
 # . Defaults ----
 def <- list(
-  show_violin = T,
+  show_violin = F,
   show_boxplot = F,
   show_points = T,
   show_barplot = F,
@@ -8,11 +8,10 @@ def <- list(
   max_samples = 200,
   one_two = T,
   trinary = T,
-  accumulate = T,
+  accumulate = F,
   prob_null = 50,
-  show_debug = T
+  show_debug = F
 )
-
 
 # . Sidebar ----
 sidebar <- dashboardSidebar(

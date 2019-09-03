@@ -51,7 +51,7 @@ main_tab <- tabItem(
     column(
       width = 12,
       # . . values output ----
-      h3(textOutput("guess_correct")),
+      htmlOutput("guess_correct"),
       valueBoxOutput("samplesBox", width = 4),
       valueBoxOutput("guessBox", width = 4),
       valueBoxOutput("esBox", width = 4),

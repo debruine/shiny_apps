@@ -79,19 +79,28 @@ server <- function(input, output, session) {
     guess_show = "?",
     sample_n = 0,
     feedback = "",
-    direction = ""
+    direction = "",
+    FP = 0,
+    FN = 0,
+    TP = 0,
+    TN = 0
   )
   
-  output$guess_correct <- renderText({
+  output$guess_correct <- renderUI(HTML({
     cor <- sum(app_vals$data$correct)
     tot <- length(app_vals$data$correct)
     sprintf(
-      "You have answered %2.0f%% (%i of %i) trials correctly.",
+      "<h3>You have answered %2.0f%% (%i of %i) trials correctly.</h3>
+      <h4>(%2.0f%% true positives, %2.0f%% true negatives, %2.0f%% false positives, %2.0f%% false negatives)</h4>",
       ifelse(tot == 0, 0, round(100*cor/tot)),
       cor,
-      tot
+      tot,
+      ifelse(tot == 0, 0, round(100*app_vals$TP/tot)),
+      ifelse(tot == 0, 0, round(100*app_vals$TN/tot)),
+      ifelse(tot == 0, 0, round(100*app_vals$FP/tot)),
+      ifelse(tot == 0, 0, round(100*app_vals$FN/tot))
     )
-  })
+  }))
   
   # settings ----
   presets <- function(pre) {
@@ -397,19 +406,29 @@ server <- function(input, output, session) {
       )
     }
     
-    correct_text <- case_when(
-      app_vals$es < 0    & app_vals$direction == "A>B" ~ "Correct, this is a true positive. There was a real effect in the population and you correctly detected it.",
-      app_vals$es > 0    & app_vals$direction == "B>A" ~ "Correct, this is a true positive. There was a real effect in the population and you correctly detected it.",
-      app_vals$es == "0" & app_vals$direction == "A=B"~ "Correct, this is a true negative. There was no real effect in the population and you correctly rejected it.",
-      app_vals$es == "0" & app_vals$direction != "A=B"~ "Incorrect, this is a type 1 error, or false positive. There was no real effect in the population but you incorrectly identified one.",
-      TRUE ~ "Incorrect, this is a type 2 error, or false negative. There was a real effect in the population but you incorrectly rejected it."
+    my_res <- case_when(
+      app_vals$es < 0    & app_vals$direction == "A>B" ~ "TP",
+      app_vals$es > 0    & app_vals$direction == "B>A" ~ "TP",
+      app_vals$es == "0" & app_vals$direction == "A=B"~ "TN",
+      app_vals$es == "0" & app_vals$direction != "A=B"~ "FP",
+      TRUE ~ "FN"
+    )
+    
+    # increment count for T/F P/N
+    app_vals[[my_res]] <- app_vals[[my_res]] + 1
+    
+    correct_text <- list(
+      TP = "Correct, this is a true positive. There was a real effect in the population and you correctly identified it.",
+      TN = "Correct, this is a true negative. There was no real effect in the population and you correctly identified this.",
+      FP = "Incorrect, this is a false positive (Type I Error). There was no real effect in the population but you incorrectly identified one.",
+      FN =  "Incorrect, this is a false negative (Type II Error). There was a real effect in the population but you failed to identify it."
     )
     
     app_vals$feedback <- sprintf(
       "<h3>%s</h3>
       <h3>Across the %i data points you observed in this trial, A had a mean of %1.2f (SD = %1.2f), B had a mean of %1.2f (SD = %1.2f), and the observed effect size was d = %1.2f%s.</h3>
       <h3>These data were sampled from a population where A had a mean of %1.2f (SD = %1.2f), B had a mean of %1.2f (SD = %1.2f), and the true effect size was d = %1.2f.</h3>",
-      correct_text, 
+      correct_text[[my_res]], 
       nrow(trial_dat),
       stats$m[1],
       stats$sd[1],
