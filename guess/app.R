@@ -265,51 +265,68 @@ server <- function(input, output, session) {
   # guess button actions ----
   observeEvent(input$guess_A, {
     app_vals$direction <- "A>B"
+    app_vals$guess_show <- "A>B"
     setButtonClass(id = "guess_A", class = "A")
     click("submit_guess")
   }, ignoreNULL = TRUE)
   observeEvent(input$guess_0, {
     app_vals$direction <- "A=B"
+    app_vals$guess_show <- "A=B"
     setButtonClass(id = "guess_0", class = "null")
     click("submit_guess")
   }, ignoreNULL = TRUE)
   observeEvent(input$guess_B, {
     app_vals$direction <- "B>A"
+    app_vals$guess_show <- "B>A"
     setButtonClass(id = "guess_B", class = "B")
     click("submit_guess")
   }, ignoreNULL = TRUE)
   
   observeEvent(input$guess_A8, {
+    app_vals$direction <- "A>B"
+    app_vals$guess_show <- "-0.8"
     updateSliderInput(session, "d_guess", value = -0.8)
     setButtonClass(id = "guess_A8", class = "A")
     click("submit_guess")
   }, ignoreNULL = TRUE)
   observeEvent(input$guess_A5, {
+    app_vals$direction <- "A>B"
+    app_vals$guess_show <- "-0.5"
     updateSliderInput(session, "d_guess", value = -0.5)
     setButtonClass(id = "guess_A5", class = "A")
     click("submit_guess")
   }, ignoreNULL = TRUE)
   observeEvent(input$guess_A2, {
+    app_vals$direction <- "A>B"
+    app_vals$guess_show <- "-0.2"
     updateSliderInput(session, "d_guess", value = -0.2)
     setButtonClass(id = "guess_A2", class = "A")
     click("submit_guess")
   }, ignoreNULL = TRUE)
   observeEvent(input$guess_00, {
+    app_vals$direction <- "A=B"
+    app_vals$guess_show <- "0"
     updateSliderInput(session, "d_guess", value = 0)
     setButtonClass(id = "guess_00", class = "null")
     click("submit_guess")
   }, ignoreNULL = TRUE)
   observeEvent(input$guess_B2, {
+    app_vals$direction <- "B>A"
+    app_vals$guess_show <- "+0.2"
     updateSliderInput(session, "d_guess", value = +0.2)
     setButtonClass(id = "guess_B2", class = "B")
     click("submit_guess")
   }, ignoreNULL = TRUE)
   observeEvent(input$guess_B5, {
+    app_vals$direction <- "B>A"
+    app_vals$guess_show <- "+0.5"
     updateSliderInput(session, "d_guess", value = +0.5)
     setButtonClass(id = "guess_B5", class = "B")
     click("submit_guess")
   }, ignoreNULL = TRUE)
   observeEvent(input$guess_B8, {
+    app_vals$direction <- "B>A"
+    app_vals$guess_show <- "+0.8"
     updateSliderInput(session, "d_guess", value = +0.8)
     setButtonClass(id = "guess_B8", class = "B")
     click("submit_guess")
@@ -321,7 +338,6 @@ server <- function(input, output, session) {
     tog_interface(FALSE)
 
     if (input$trinary) {
-      app_vals$guess_show <- app_vals$direction
       guess <- NA
       app_vals$es_show <- case_when(
         app_vals$es < 0  ~ "A>B",
@@ -329,13 +345,8 @@ server <- function(input, output, session) {
         app_vals$es > 0  ~ "B>A"
       )
     } else {
-      app_vals$direction <- case_when(
-        input$d_guess < 0  ~ "A>B",
-        input$d_guess == 0 ~ "A=B",
-        input$d_guess > 0  ~ "B>A"
-      )
-      guess <- input$d_guess
-      app_vals$guess_show <- guess
+      guess <- as.numeric(app_vals$guess_show)
+      message("guess: ", guess)
       app_vals$es_show <- app_vals$es
     }
     
