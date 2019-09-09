@@ -206,7 +206,7 @@ server <- function(input, output, session) {
       show_boxplot = F,
       show_points = T,
       show_barplot = F,
-      show_meanse = T,
+      show_meanse = F,
       n_obs = 50,
       max_samples = 1,
       one_two = F,
