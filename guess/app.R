@@ -40,7 +40,7 @@ server <- function(input, output, session) {
   # always hidden now (only needs shown for continuous slider)
   hide("submit_guess") 
   hide("d_guess")
-  click("setting_1")
+  presets(session = session)
   
   # toggle for trinary/continuous input ----
   observe({
@@ -107,100 +107,40 @@ server <- function(input, output, session) {
   # settings ----
   
   observeEvent(input$setting_debug, {
-    list(
-      show_violin = F,
-      show_boxplot = F,
-      show_points = T,
-      show_barplot = F,
-      show_meanse = T,
-      n_obs = 1,
-      max_samples = 200,
-      one_two = T,
-      trinary = T,
-      accumulate = T,
-      prob_null = 50,
-      show_debug = T
-    ) %>% presets()
+    presets(show_points = T,
+            show_meanse = T,
+            accumulate = T,
+            show_debug = T, 
+            session = session)
   })
   observeEvent(input$setting_1, {
-    list(
-      show_violin = F,
-      show_boxplot = F,
-      show_points = T,
-      show_barplot = F,
-      show_meanse = F,
-      n_obs = 1,
-      max_samples = 10000,
-      one_two = T,
-      trinary = T,
-      accumulate = F,
-      prob_null = 50,
-      show_debug = F
-    ) %>% presets() 
+    presets(trinary = T,
+            accumulate = F,
+            session = session) 
   })
   observeEvent(input$setting_2, {
-    list(
-      show_violin = F,
-      show_boxplot = F,
-      show_points = T,
-      show_barplot = F,
-      show_meanse = F,
-      n_obs = 1,
-      max_samples = 10000,
-      one_two = T,
-      trinary = T,
-      accumulate = T,
-      prob_null = 50,
-      show_debug = F
-    ) %>% presets() 
+    presets(trinary = T,
+            accumulate = T, 
+            session = session) 
   })
   observeEvent(input$setting_3, {
-    list(
-      show_violin = F,
-      show_boxplot = F,
-      show_points = T,
-      show_barplot = F,
-      show_meanse = F,
-      n_obs = 1,
-      max_samples = 10000,
-      one_two = T,
-      trinary = F,
-      accumulate = F,
-      prob_null = 50,
-      show_debug = F
-    ) %>% presets() 
+    presets(trinary = F, 
+            accumulate = F, 
+            session = session) 
   })
-  observeEvent(input$setting_3, {
-    list(
-      show_violin = F,
-      show_boxplot = F,
-      show_points = T,
-      show_barplot = F,
-      show_meanse = F,
-      n_obs = 1,
-      max_samples = 10000,
-      one_two = T,
-      trinary = F,
-      accumulate = T,
-      prob_null = 50,
-      show_debug = F
-    ) %>% presets() 
+  observeEvent(input$setting_4, {
+    presets(accumulate = T, 
+            trinary = F, 
+            session = session)  
   })
   observeEvent(input$setting_c, {
-    list(
-      show_violin = F,
-      show_boxplot = F,
-      show_points = T,
-      show_barplot = F,
-      show_meanse = F,
-      n_obs = 50,
-      max_samples = 1,
-      one_two = F,
-      trinary = F,
-      accumulate = T,
-      prob_null = 10,
-      show_debug = F
-    ) %>% presets() 
+    presets(n_obs = 50,
+            max_samples = 1,
+            one_two = F,
+            accumulate = T, 
+            trinary = F,
+            prob_null = 10,
+            session = session) 
   })
 
   # next_trial ----

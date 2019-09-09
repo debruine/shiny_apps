@@ -69,7 +69,7 @@ setButtonClass <- function(id = NULL, class = NULL) {
   }
 }
 
-presets <- function(...) {
+presets <- function(..., session = session) {
   # default
   pre <- list(
     show_violin = F,

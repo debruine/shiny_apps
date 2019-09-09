@@ -25,6 +25,7 @@ main_tab <- tabItem(
       ),
       # . . continuous input ----
       box(id = "continuous_input",
+          style = "display: none;",
           width = NULL,
           h4("What is your best guess of the true population effect size, expressed in Cohen's d?"),
           # . . d_guess slide ----
