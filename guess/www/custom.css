@@ -29,4 +29,11 @@
 .checkbox { margin: 0; }
 .shiny-input-container { margin-bottom: 0; }
 
+#submit_guess, #d_guess { display: none; }
+
+#septenary_buttons button {
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
 /* #sidebarCollapsed { display: none; } */

@@ -33,7 +33,7 @@ main_tab <- tabItem(
           span("A>B", style="float: left; color: #DD4B39;"),
           span("B>A", style="float: right; color: #0073B7;"),
           hr(),
-          div(id = "septernary_buttons",
+          div(id = "septenary_buttons",
             actionButton("guess_A8", "-0.8", width = "13%"),
             actionButton("guess_A5", "-0.5", width = "13%"),
             actionButton("guess_A2", "-0.2", width = "13%"),

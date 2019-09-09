@@ -69,6 +69,42 @@ setButtonClass <- function(id = NULL, class = NULL) {
   }
 }
 
+presets <- function(...) {
+  # default
+  pre <- list(
+    show_violin = F,
+    show_boxplot = F,
+    show_points = T,
+    show_barplot = F,
+    show_meanse = F,
+    n_obs = 1,
+    max_samples = 10000,
+    one_two = T,
+    trinary = T,
+    accumulate = F,
+    prob_null = 50,
+    show_debug = F
+  )
+  
+  change <- list(...)
+  lapply(names(change), function(x) pre[[x]] <<- change[[x]])
+  
+  cbs <- c("show_violin", "show_boxplot", "show_points", "show_barplot", "show_meanse",
+           "one_two", "trinary", "accumulate", "show_debug")
+  sli <- c("n_obs", "prob_null")
+  num <- c("max_samples")
+  
+  lapply(cbs, function(x) {
+    updateCheckboxInput(session, x, value = pre[[x]])
+  })
+  lapply(sli, function(x) {
+    updateSliderInput(session, x, value = pre[[x]])
+  })
+  lapply(num, function(x) {
+    updateNumericInput(session, x, value = pre[[x]])
+  })
+}
+
 summary_tri_plot <- function(data) {
   # TODO: too rigid, needs flexibility for other levels combos
   mutate(data, bin = factor(real, levels = c(-.8, -.5, -.2, 0, .2, .5, .8))) %>%

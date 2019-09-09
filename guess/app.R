@@ -39,7 +39,8 @@ server <- function(input, output, session) {
   tog_interface(FALSE)
   # always hidden now (only needs shown for continuous slider)
   hide("submit_guess") 
-  hide("d_guess") 
+  hide("d_guess")
+  click("setting_1")
   
   # toggle for trinary/continuous input ----
   observe({
@@ -104,29 +105,14 @@ server <- function(input, output, session) {
   }))
   
   # settings ----
-  presets <- function(pre) {
-    cbs <- c("show_violin", "show_boxplot", "show_points", "show_barplot", "show_meanse",
-             "one_two", "trinary", "accumulate", "show_debug")
-    sli <- c("n_obs", "prob_null")
-    num <- c("max_samples")
-    
-    lapply(cbs, function(x) {
-      updateCheckboxInput(session, x, value = pre[[x]])
-    })
-    lapply(sli, function(x) {
-      updateSliderInput(session, x, value = pre[[x]])
-    })
-    lapply(num, function(x) {
-      updateNumericInput(session, x, value = pre[[x]])
-    })
-  }
+  
   observeEvent(input$setting_debug, {
     list(
-      show_violin = T,
+      show_violin = F,
       show_boxplot = F,
       show_points = T,
       show_barplot = F,
-      show_meanse = F,
+      show_meanse = T,
       n_obs = 1,
       max_samples = 200,
       one_two = T,
