@@ -36,20 +36,18 @@ ui <- dashboardPage(
 # Define server logic ----
 server <- function(input, output, session) {
   # On start ----
-  hide("submit_guess")
-  disable("sample_again")
-  hide("sample_again")
-  disable("d_guess")
-  disable("guess_A")
-  disable("guess_0")
-  disable("guess_B")
+  tog_interface(FALSE)
+  # always hidden now (only needs shown for continuous slider)
+  hide("submit_guess") 
+  hide("d_guess") 
   
   # toggle for trinary/continuous input ----
   observe({
     toggle("trinary_input", condition = input$trinary)
     toggle("continuous_input", condition = !input$trinary)
-    toggle("submit_guess", condition = !input$trinary)
-    toggleState("submit_guess", condition = !input$trinary)
+    toggle("perf_plot_box", condition = !input$trinary)
+    #toggle("submit_guess", condition = !input$trinary)
+    #toggleState("submit_guess", condition = !input$trinary)
   })
   
   # Set app_vals reactiveValues ----
@@ -64,14 +62,16 @@ server <- function(input, output, session) {
                       violin = logical(),
                       boxplot = logical(),
                       points = logical(),
+                      barplot = logical(),
                       trinary = logical(),
                       one_two = logical(),
-                      accumulate = logical()
+                      accumulate = logical(),
+                      stringsAsFactors = FALSE
     ),
     id = c(format(Sys.time(), format = "%Y-%m-%d-%H%M%S"),
       "_", sample(letters, 8, replace = TRUE)) %>% 
       paste(collapse = ""),
-    stats = data.frame(),
+    stats = data.frame(stringsAsFactors = FALSE),
     offset = 0,
     sd = 1,
     es = 0,
@@ -105,15 +105,19 @@ server <- function(input, output, session) {
   
   # settings ----
   presets <- function(pre) {
-    cbs <- c("show_violin", "show_boxplot", "show_points", "show_barplot",
+    cbs <- c("show_violin", "show_boxplot", "show_points", "show_barplot", "show_meanse",
              "one_two", "trinary", "accumulate", "show_debug")
-    num <- c("n_obs", "max_samples", "prob_null")
+    sli <- c("n_obs", "prob_null")
+    num <- c("max_samples")
     
     lapply(cbs, function(x) {
       updateCheckboxInput(session, x, value = pre[[x]])
     })
-    lapply(num, function(x) {
+    lapply(sli, function(x) {
       updateSliderInput(session, x, value = pre[[x]])
+    })
+    lapply(num, function(x) {
+      updateNumericInput(session, x, value = pre[[x]])
     })
   }
   observeEvent(input$setting_debug, {
@@ -122,6 +126,7 @@ server <- function(input, output, session) {
       show_boxplot = F,
       show_points = T,
       show_barplot = F,
+      show_meanse = F,
       n_obs = 1,
       max_samples = 200,
       one_two = T,
@@ -137,10 +142,43 @@ server <- function(input, output, session) {
       show_boxplot = F,
       show_points = T,
       show_barplot = F,
+      show_meanse = F,
       n_obs = 1,
-      max_samples = 200,
+      max_samples = 10000,
       one_two = T,
       trinary = T,
+      accumulate = F,
+      prob_null = 50,
+      show_debug = F
+    ) %>% presets() 
+  })
+  observeEvent(input$setting_2, {
+    list(
+      show_violin = F,
+      show_boxplot = F,
+      show_points = T,
+      show_barplot = F,
+      show_meanse = F,
+      n_obs = 1,
+      max_samples = 10000,
+      one_two = T,
+      trinary = T,
+      accumulate = T,
+      prob_null = 50,
+      show_debug = F
+    ) %>% presets() 
+  })
+  observeEvent(input$setting_3, {
+    list(
+      show_violin = T,
+      show_boxplot = F,
+      show_points = T,
+      show_barplot = F,
+      show_meanse = F,
+      n_obs = 1,
+      max_samples = 10000,
+      one_two = T,
+      trinary = F,
       accumulate = F,
       prob_null = 50,
       show_debug = F
@@ -152,6 +190,7 @@ server <- function(input, output, session) {
       show_boxplot = F,
       show_points = T,
       show_barplot = F,
+      show_meanse = F,
       n_obs = 50,
       max_samples = 1,
       one_two = F,
@@ -165,25 +204,10 @@ server <- function(input, output, session) {
   # next_trial ----
   observeEvent(input$next_trial, {
     app_vals$guessing <- FALSE
-    enable("sample_again")
-    show("sample_again")
-    hide("next_trial")
-    enable("d_guess")
-    enable("guess_A")
-    enable("guess_0")
-    enable("guess_B")
-    
-    # disable submit until an option is chosen
-    if (input$trinary) {
-      disable("submit_guess")
-    } else {
-      show("submit_guess")
-    }
+    tog_interface(TRUE)
     
     # set button colours normal
-    removeClass(id = "guess_A", class = "A")
-    removeClass(id = "guess_0", class = "null")
-    removeClass(id = "guess_B", class = "B")
+    setButtonClass()
     
     app_vals$feedback <- ""
     app_vals$direction <- ""
@@ -222,6 +246,7 @@ server <- function(input, output, session) {
 
   # sample_again / simdata()----
   simdata <- eventReactive(input$sample_again, {
+    message("sample ", input$sample_again)
     app_vals$es_show <- "?"
     app_vals$guess_show <- "?"
     
@@ -243,7 +268,8 @@ server <- function(input, output, session) {
       val = c(A, B) %>% round(3)
     )
     
-    dat$group <- factor(dat$group, levels = c("A", "B"))
+    # I don't think we need this anymore
+    #dat$group <- factor(dat$group, levels = c("A", "B"))
     
     if (input$one_two) {
       # show A on odd and B on even trials)
@@ -296,37 +322,60 @@ server <- function(input, output, session) {
   # guess button actions ----
   observeEvent(input$guess_A, {
     app_vals$direction <- "A>B"
-    addClass(id = "guess_A", class = "A")
-    removeClass(id = "guess_0", class = "null")
-    removeClass(id = "guess_B", class = "B")
+    setButtonClass(id = "guess_A", class = "A")
     click("submit_guess")
-  })
+  }, ignoreNULL = TRUE)
   observeEvent(input$guess_0, {
     app_vals$direction <- "A=B"
-    removeClass(id = "guess_A", class = "A")
-    addClass(id = "guess_0", class = "null")
-    removeClass(id = "guess_B", class = "B")
+    setButtonClass(id = "guess_0", class = "null")
     click("submit_guess")
-  })
+  }, ignoreNULL = TRUE)
   observeEvent(input$guess_B, {
     app_vals$direction <- "B>A"
-    removeClass(id = "guess_A", class = "A")
-    removeClass(id = "guess_0", class = "null")
-    addClass(id = "guess_B", class = "B")
+    setButtonClass(id = "guess_B", class = "B")
     click("submit_guess")
-  })
+  }, ignoreNULL = TRUE)
+  
+  observeEvent(input$guess_A8, {
+    updateSliderInput(session, "d_guess", value = -0.8)
+    setButtonClass(id = "guess_A8", class = "A")
+    click("submit_guess")
+  }, ignoreNULL = TRUE)
+  observeEvent(input$guess_A5, {
+    updateSliderInput(session, "d_guess", value = -0.5)
+    setButtonClass(id = "guess_A5", class = "A")
+    click("submit_guess")
+  }, ignoreNULL = TRUE)
+  observeEvent(input$guess_A2, {
+    updateSliderInput(session, "d_guess", value = -0.2)
+    setButtonClass(id = "guess_A2", class = "A")
+    click("submit_guess")
+  }, ignoreNULL = TRUE)
+  observeEvent(input$guess_00, {
+    updateSliderInput(session, "d_guess", value = 0)
+    setButtonClass(id = "guess_00", class = "null")
+    click("submit_guess")
+  }, ignoreNULL = TRUE)
+  observeEvent(input$guess_B2, {
+    updateSliderInput(session, "d_guess", value = +0.2)
+    setButtonClass(id = "guess_B2", class = "B")
+    click("submit_guess")
+  }, ignoreNULL = TRUE)
+  observeEvent(input$guess_B5, {
+    updateSliderInput(session, "d_guess", value = +0.5)
+    setButtonClass(id = "guess_B5", class = "B")
+    click("submit_guess")
+  }, ignoreNULL = TRUE)
+  observeEvent(input$guess_B8, {
+    updateSliderInput(session, "d_guess", value = +0.8)
+    setButtonClass(id = "guess_B8", class = "B")
+    click("submit_guess")
+  }, ignoreNULL = TRUE)
 
   # submit_guess ----
   observeEvent(input$submit_guess, {
     app_vals$guessing <- TRUE # set flag for display
-    hide("submit_guess")
-    show("next_trial")
-    disable("sample_again")
-    hide("sample_again")
-    disable("d_guess")
-    disable("guess_A")
-    disable("guess_0")
-    disable("guess_B")
+    tog_interface(FALSE)
 
     if (input$trinary) {
       app_vals$guess_show <- app_vals$direction
@@ -366,9 +415,11 @@ server <- function(input, output, session) {
               boxplot = input$show_boxplot,
               points = input$show_points,
               barplot = input$show_barplot,
+              meanse = input$show_meanse,
               trinary = input$trinary,
               one_two = input$one_two,
-              accumulate = input$accumulate))
+              accumulate = input$accumulate,
+              stringsAsFactors = FALSE))
     
     # feedback ----
     real_dir <- case_when(
@@ -419,7 +470,7 @@ server <- function(input, output, session) {
       TRUE ~ "FN"
     )
     
-    # increment count for T/F P/N
+    # increment count for T/F P/N ----
     app_vals[[my_res]] <- app_vals[[my_res]] + 1
     
     correct_text <- list(
@@ -429,6 +480,7 @@ server <- function(input, output, session) {
       FN =  "Incorrect, this is a false negative (Type II Error). There was a real effect in the population but you failed to identify it."
     )
     
+    # concat feedback ----
     app_vals$feedback <- sprintf(
       "<h3>%s</h3>
       <h3>Across the %i data points you observed in this trial, A had a mean of %1.2f (SD = %1.2f), B had a mean of %1.2f (SD = %1.2f), and the observed effect size was d = %1.2f%s.</h3>
@@ -448,6 +500,7 @@ server <- function(input, output, session) {
       app_vals$es
     )
     
+    # save the data ----
     saveData(app_vals$data, app_vals$stats, app_vals$id)
   })
 
@@ -455,7 +508,6 @@ server <- function(input, output, session) {
   output$current_plot <- renderPlot({
     dat <- simdata()
     
-    # TODO: show accumulate on submit_guess
     if ((input$accumulate | app_vals$guessing) & 
         input$n_obs == 1) {
       dat <- app_vals$stats %>%
@@ -464,23 +516,25 @@ server <- function(input, output, session) {
     
     current_plot(dat, 
                  points = input$show_points, 
-                 violin = (input$show_violin | app_vals$guessing), 
+                 violin = input$show_violin, 
                  boxplot = input$show_boxplot,
                  barplot = input$show_barplot,
+                 meanse = (input$show_meanse | app_vals$guessing),
                  stats = (input$show_debug | app_vals$guessing),
                  m1 = app_vals$offset,
                  m2 = app_vals$offset + (app_vals$es * app_vals$sd),
-                 sd = app_vals$sd)
+                 sd = app_vals$sd,
+                 pt_width = ifelse(input$accumulate | input$n_obs > 1| app_vals$guessing, .35, 0))
   })
 
   # . performance_plot ----
-  # output$performance_plot <- renderPlot({
-  #   if (input$trinary) {
-  #     app_vals$data %>% summary_tri_plot()
-  #   } else {
-  #     app_vals$data %>% summary_guess_plot()
-  #   }
-  # })
+  output$performance_plot <- renderPlot({
+    if (input$trinary) {
+      #app_vals$data %>% summary_tri_plot()
+    } else {
+      app_vals$data %>% summary_guess_plot()
+    }
+  })
   
   # . overall_plot ----
   output$overall_plot <- renderPlot({

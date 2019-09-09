@@ -39,6 +39,36 @@ loadData <- function(outputDir = "responses",
   data
 }
 
+tog_interface <- function(enabled = TRUE) {
+  elems <- c("sample_again", "d_guess", "guess_A", "guess_0", 
+             "guess_B", "guess_A2", "guess_A5", "guess_A8", 
+             "guess_00", "guess_B2", "guess_B5", "guess_B8")
+  
+  if (enabled) {
+    lapply(elems, enable)
+    hide("next_trial")
+    show("sample_again")
+  } else {
+    lapply(elems, disable)
+    show("next_trial")
+    hide("sample_again")
+  }
+}
+
+setButtonClass <- function(id = NULL, class = NULL) {
+  buttonsA <- c("guess_A", "guess_A2", "guess_A5", "guess_A8")
+  buttons0 <- c("guess_0", "guess_00")
+  buttonsB <- c("guess_B", "guess_B2", "guess_B5", "guess_B8")
+  
+  lapply(buttonsA, removeClass, class="A")
+  lapply(buttons0, removeClass, class="null")
+  lapply(buttonsB, removeClass, class="B")
+  
+  if (!is.null(id) & !is.null(class)) {
+    addClass(id, class)
+  }
+}
+
 summary_tri_plot <- function(data) {
   # TODO: too rigid, needs flexibility for other levels combos
   mutate(data, bin = factor(real, levels = c(-.8, -.5, -.2, 0, .2, .5, .8))) %>%
@@ -71,9 +101,11 @@ current_plot <- function(data,
                          points  = FALSE, 
                          violin  = FALSE, 
                          boxplot = FALSE,
-                         barplot = FALSE, 
+                         barplot = FALSE,
+                         meanse = FALSE,
                          stats = FALSE,
-                         m1 = 0, m2 = 0, sd = 1) {
+                         m1 = 0, m2 = 0, sd = 1,
+                         pt_width = 0.35) {
   p <- data %>%
     ggplot(aes(group, val, color = group, shape = group)) +
     coord_cartesian(ylim = c(-4, 4.5)) +
@@ -95,20 +127,22 @@ current_plot <- function(data,
   }
   
   if (points) {
-    pt_width <- ifelse(nrow(data)==1, 0, .45) 
-    #pt_width <- min(.45, (nrow(data)-1) * 0.004)
     pt_size <- max(1, 5.6 - log(nrow(data))) # not < 1
     p <- p + geom_point(size = pt_size, 
                         position = position_jitter(seed = 20, width = pt_width, height = 0))
   }
   
   if (violin & nrow(data) > 1) {
-    p <- p + geom_violin(draw_quantiles = 0.5,
-                         alpha = 0.3)
+    p <- p + geom_violin(alpha = 0.3)
   }
   
   if (boxplot & nrow(data) > 1) {
     p <- p + geom_boxplot(width = 0.25, alpha = 0.3)
+  }
+  
+  if (meanse & nrow(data) > 1) {
+    p <- p + stat_summary(geom = "crossbar", fatten = 1, fun.y = mean, fun.ymax = mean, fun.ymin = mean) +
+      stat_summary(geom = "errorbar", fun.data = mean_se, width = 0.15)
   }
   
   if (stats) {

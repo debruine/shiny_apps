@@ -11,13 +11,13 @@
   background: #605CA8 !important;
 }
 
-#guess_A {
+#guess_A, #guess_A2, #guess_A5, #guess_A8 {
   border-color: #DD4B39 !important;
 }
-#guess_B {
+#guess_B, #guess_B2, #guess_B5, #guess_B8 {
   border-color: #0073B7 !important;
 }
-#guess_0 {
+#guess_0, #guess_00 {
   border-color: #605CA8 !important;
 }
 
