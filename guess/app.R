@@ -311,6 +311,7 @@ server <- function(input, output, session) {
       app_vals$es_show == "A>B" ~ "red",
       app_vals$es_show < 0 ~ "red",
       app_vals$es_show == "A=B" ~ "purple",
+      app_vals$es_show == 0 ~ "purple",
       app_vals$es_show == "B>A" ~ "blue",
       app_vals$es_show > 0 ~ "blue",
       TRUE ~ "black"
@@ -381,15 +382,15 @@ server <- function(input, output, session) {
       app_vals$guess_show <- app_vals$direction
       guess <- NA
       app_vals$es_show <- case_when(
-        app_vals$es < 0 ~ "A>B",
+        app_vals$es < 0  ~ "A>B",
         app_vals$es == 0 ~ "A=B",
-        app_vals$es > 0 ~ "B>A"
+        app_vals$es > 0  ~ "B>A"
       )
     } else {
       app_vals$direction <- case_when(
-        input$d_guess < 0 ~ "A>B",
+        input$d_guess < 0  ~ "A>B",
         input$d_guess == 0 ~ "A=B",
-        input$d_guess > 0 ~ "B>A"
+        input$d_guess > 0  ~ "B>A"
       )
       guess <- input$d_guess
       app_vals$guess_show <- guess
@@ -398,7 +399,7 @@ server <- function(input, output, session) {
     
     correct <- case_when(
       app_vals$es < 0    & app_vals$direction == "A>B" ~ TRUE,
-      app_vals$es == "0" & app_vals$direction == "A=B"~ TRUE,
+      app_vals$es == 0   & app_vals$direction == "A=B"~ TRUE,
       app_vals$es > 0    & app_vals$direction == "B>A" ~ TRUE,
       TRUE ~ FALSE
     )
@@ -420,13 +421,6 @@ server <- function(input, output, session) {
               one_two = input$one_two,
               accumulate = input$accumulate,
               stringsAsFactors = FALSE))
-    
-    # feedback ----
-    real_dir <- case_when(
-      app_vals$es < 0 ~ "bigger",
-      app_vals$es == "0" ~ "the same size as",
-      app_vals$es > 0 ~ "smaller"
-    )
     
     # get data from this trial
     trial_dat <-  filter(app_vals$stats, 
@@ -463,10 +457,10 @@ server <- function(input, output, session) {
     }
     
     my_res <- case_when(
-      app_vals$es < 0    & app_vals$direction == "A>B" ~ "TP",
-      app_vals$es > 0    & app_vals$direction == "B>A" ~ "TP",
-      app_vals$es == "0" & app_vals$direction == "A=B"~ "TN",
-      app_vals$es == "0" & app_vals$direction != "A=B"~ "FP",
+      app_vals$es < 0  & app_vals$direction == "A>B" ~ "TP",
+      app_vals$es > 0  & app_vals$direction == "B>A" ~ "TP",
+      app_vals$es == 0 & app_vals$direction == "A=B" ~ "TN",
+      app_vals$es == 0 & app_vals$direction != "A=B" ~ "FP",
       TRUE ~ "FN"
     )
     
