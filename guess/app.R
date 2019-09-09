@@ -456,7 +456,7 @@ server <- function(input, output, session) {
                  boxplot = input$show_boxplot,
                  barplot = input$show_barplot,
                  meanse = (input$show_meanse | app_vals$guessing),
-                 stats = (input$show_debug | app_vals$guessing),
+                 stats = (input$show_debug),
                  m1 = app_vals$offset,
                  m2 = app_vals$offset + (app_vals$es * app_vals$sd),
                  sd = app_vals$sd,
