@@ -170,7 +170,7 @@ server <- function(input, output, session) {
   })
   observeEvent(input$setting_3, {
     list(
-      show_violin = T,
+      show_violin = F,
       show_boxplot = F,
       show_points = T,
       show_barplot = F,
@@ -184,13 +184,29 @@ server <- function(input, output, session) {
       show_debug = F
     ) %>% presets() 
   })
-  observeEvent(input$setting_c, {
+  observeEvent(input$setting_3, {
     list(
-      show_violin = T,
+      show_violin = F,
       show_boxplot = F,
       show_points = T,
       show_barplot = F,
       show_meanse = F,
+      n_obs = 1,
+      max_samples = 10000,
+      one_two = T,
+      trinary = F,
+      accumulate = T,
+      prob_null = 50,
+      show_debug = F
+    ) %>% presets() 
+  })
+  observeEvent(input$setting_c, {
+    list(
+      show_violin = F,
+      show_boxplot = F,
+      show_points = T,
+      show_barplot = F,
+      show_meanse = T,
       n_obs = 50,
       max_samples = 1,
       one_two = F,

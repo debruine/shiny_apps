@@ -23,8 +23,9 @@ sidebar <- dashboardSidebar(
   ),
   
   actionButton("setting_1", "1: Trinary", width = "80%"),
-  actionButton("setting_2", "2: Accumulate", width = "80%"),
+  actionButton("setting_2", "2: Trinary Accumulate", width = "80%"),
   actionButton("setting_3", "3: Septenary", width = "80%"),
+  actionButton("setting_4", "4: Septenary Accumulate", width = "80%"),
   actionButton("setting_c", "Septenary 1 Sample", width = "80%"),
   actionButton("setting_debug", "Debug", width = "80%"),
   checkboxInput("show_debug", "Debug", value = def$show_debug),
