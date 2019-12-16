@@ -44,6 +44,10 @@ I bless the rains down in Africa
 I bless the rains down in Africa (ah, gonna take the time)
 Gonna take some time to do the things we never had (ooh, ooh)"
 
+omit <- "the, a, an, 
+I, he, she, they, you, we, it, 
+but, and, or, 
+for, to, in, on, at, if, of"
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -73,6 +77,10 @@ ui <- fluidPage(
                      ),
                      selected = 1
                      ),
+         textAreaInput("omittedWords", 
+                       "Words to omit (separate with commas)", 
+                       value = omit, 
+                       height = "200px"),
          HTML("Download the <a href='https://github.com/debruine/shiny/tree/master/wordcloud'>app code here<a/>.")
       ),
       
@@ -92,11 +100,17 @@ server <- function(input, output, session) {
      
      # this is better than the next two lines, but requires tidytext, 
      #   which isn't installed on our shiny server
+     omitted <- input$omittedWords %>%
+        tolower() %>%
+        strsplit("(\\s|,)+") %>% 
+        unlist()
+     
      word_table <- unnest_tokens(text_table, "word", "text") %>%
      #words <- input$theText %>% tolower() %>% strsplit("[^a-zA-Z]+")
      #word_table <- tibble(word = words[[1]]) %>%
        count(word) %>%
        filter(n >= input$minWord) %>% 
+       filter(!(word %in% omitted)) %>%
        arrange(desc(n)) %>%
        head(input$topWords)
      
