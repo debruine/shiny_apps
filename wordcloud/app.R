@@ -47,7 +47,8 @@ Gonna take some time to do the things we never had (ooh, ooh)"
 omit <- "the, a, an, 
 I, he, she, they, you, we, it, 
 but, and, or, 
-for, to, in, on, at, if, of"
+for, to, in, on, at, if, of,
+0, 1, 2, 3, 4, 5, 6, 7, 8, 9"
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
