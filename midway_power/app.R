@@ -1,5 +1,6 @@
 ## app.R ##
 library(shiny)
+library(shinyjs)
 library(shinydashboard)
 
 ## Functions ----
