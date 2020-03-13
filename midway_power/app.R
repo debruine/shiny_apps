@@ -49,8 +49,8 @@ server <- function(input, output, session) {
       dat <- rnorm(input$n_first, input$es)
       obs_d <- mean(dat)/sd(dat)
       if (obs_d >= input$min_cutoff) {
-        power <- pwr::pwr.t.test(
-          d = obs_d, 
+        power <- power.t.test(
+          delta = obs_d, 
           sig.level = 0.05, 
           power = input$power, 
           type = "one.sample"
