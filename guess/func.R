@@ -107,19 +107,38 @@ presets <- function(..., session = session) {
 
 summary_tri_plot <- function(data) {
   # TODO: too rigid, needs flexibility for other levels combos
-  mutate(data, bin = factor(real, levels = c(-.8, -.5, -.2, 0, .2, .5, .8))) %>%
-    group_by(bin) %>%
-    summarise(correct = mean(correct)*100) %>%
-    ggplot(aes(bin, correct, fill = bin)) +
-    geom_col(show.legend = FALSE) +
+  mutate(data, 
+         bin = factor(real, levels = c(-.8, -.5, -.2, 0, .2, .5, .8)),
+         version = case_when(
+           trinary & !accumulate ~ "1: Trinary Single",
+           trinary & accumulate ~ "2: Trinary Accumulate",
+           !trinary & !accumulate ~ "3: Effect Size Single",
+           !trinary & accumulate ~ "4: Effect Size Accumulate",
+           TRUE ~ "Other Version"
+           )) %>%
+    group_by(bin, version) %>%
+    summarise(correct = mean(correct)*100,
+              `A>B` = mean(guess_dir == "A>B")*100,
+              `A=B` = mean(guess_dir == "A=B")*100,
+              `B>A` = mean(guess_dir == "B>A")*100
+              ) %>%
+    gather(response, pcnt, `A>B`:`B>A`, factor_key = T) %>%
+    ggplot() +
+    geom_col(aes(x = bin, y = correct, fill=bin), alpha = 0.25,
+             position = position_identity(), show.legend = FALSE) +
+    geom_line(aes(x = bin, y = pcnt, group = response, color = response), size = 2) +
     xlab("The true effect size (d)") +
-    ylab("Percent correct") +
+    ylab("Percent response per effect size") +
     scale_x_discrete(drop = FALSE) +
-    scale_fill_manual(values = c("#DD4B39", "#DD4B39", "#DD4B39",
+    scale_fill_manual(values = c("#DD4B39","#DD4B39","#DD4B39",
                                  "#605CA8", 
-                                 "#0073B7", "#0073B7", "#0073B7"),
+                                 "#0073B7","#0073B7","#0073B7"),
                       drop = FALSE)  +
-    theme_minimal()
+    scale_colour_manual(values = c("#DD4B39",
+                                 "#605CA8", 
+                                 "#0073B7"),
+                      drop = FALSE)  +
+    theme_minimal() + facet_wrap(~version, ncol = 1)
 }
 
 summary_guess_plot <- function(data) {

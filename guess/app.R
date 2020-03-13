@@ -85,6 +85,7 @@ server <- function(input, output, session) {
     FN = 0,
     TP = 0,
     TN = 0,
+    WD = 0,
     guessing = FALSE # flag for display
   )
   
@@ -93,14 +94,15 @@ server <- function(input, output, session) {
     tot <- length(app_vals$data$correct)
     sprintf(
       "<h3>You have answered %2.0f%% (%i of %i) trials correctly.</h3>
-      <h4>(%2.0f%% true positives, %2.0f%% true negatives, %2.0f%% false positives, %2.0f%% false negatives)</h4>",
+      <h4>(%2.0f%% true positives, %2.0f%% true negatives, %2.0f%% false positives, %2.0f%% false negatives, %2.0f%% wrong direction)</h4>",
       ifelse(tot == 0, 0, round(100*cor/tot)),
       cor,
       tot,
       ifelse(tot == 0, 0, round(100*app_vals$TP/tot)),
       ifelse(tot == 0, 0, round(100*app_vals$TN/tot)),
       ifelse(tot == 0, 0, round(100*app_vals$FP/tot)),
-      ifelse(tot == 0, 0, round(100*app_vals$FN/tot))
+      ifelse(tot == 0, 0, round(100*app_vals$FN/tot)),
+      ifelse(tot == 0, 0, round(100*app_vals$WD/tot))
     )
   }))
   
@@ -414,6 +416,8 @@ server <- function(input, output, session) {
       app_vals$es > 0  & app_vals$direction == "B>A" ~ "TP",
       app_vals$es == 0 & app_vals$direction == "A=B" ~ "TN",
       app_vals$es == 0 & app_vals$direction != "A=B" ~ "FP",
+      app_vals$es < 0  & app_vals$direction == "B>A" ~ "WD",
+      app_vals$es > 0  & app_vals$direction == "A>B" ~ "WD",
       TRUE ~ "FN"
     )
     
@@ -424,7 +428,8 @@ server <- function(input, output, session) {
       TP = "Correct, this is a true positive. There was a real effect in the population and you correctly identified it.",
       TN = "Correct, this is a true negative. There was no real effect in the population and you correctly identified this.",
       FP = "Incorrect, this is a false positive (Type I Error). There was no real effect in the population but you incorrectly identified one.",
-      FN =  "Incorrect, this is a false negative (Type II Error). There was a real effect in the population but you failed to identify it."
+      FN =  "Incorrect, this is a false negative (Type II Error). There was a real effect in the population but you failed to identify it.",
+      WD =  "Incorrect. There was a real effect in the population but you identified an effect in the wrong direction."
     )
     
     # concat feedback ----
