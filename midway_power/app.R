@@ -1,6 +1,5 @@
 ## app.R ##
 library(shiny)
-library(shinyjs)
 library(shinydashboard)
 
 ## Functions ----
@@ -10,7 +9,8 @@ library(shinydashboard)
 midway_tab <- tabItem(
   tabName = "midway_tab",
   p("Set effect size to 0 to calculate the false positive rate. The minimum cutoff sets the smallest effect size for which you'd continue the study."),
-  valueBoxOutput("n")
+  valueBoxOutput("fpr"),
+  valueBoxOutput("nn")
 )
 
 ## UI ----
@@ -44,8 +44,8 @@ ui <- dashboardPage(
 ## server ----
 server <- function(input, output, session) {
 
-  output$n <- renderValueBox({
-    fp <- purrr::map_dbl(1:input$reps, function(i) {
+  output$fpr <- renderValueBox({
+    fp <- replicate(input$reps, {
       dat <- rnorm(input$n_first, input$es)
       obs_d <- mean(dat)/sd(dat)
       if (obs_d >= input$min_cutoff) {
@@ -59,19 +59,25 @@ server <- function(input, output, session) {
         additional_n <- power$n - input$n_first 
         if (additional_n < 0) additional_n = 0
         
-        p <- purrr::map_dbl(1:input$reps, function(i) {
+        p <- replicate(input$reps, {
           dat <- c(dat, rnorm(additional_n))
           t.test(dat)$p.value
         })
         
-        mean(p < input$alpha)
+        paste(mean(p < input$alpha), power$n)
       } else {
         # give up is observed effect size less than cutoff
         NA
       }
     })
     
-    fpr <- round(mean(fp, na.rm = TRUE), 2)
+    fp2 <- fp[!is.na(fp)]
+    a <- as.data.frame(t(as.data.frame(strsplit(fp2, " "), stringsAsFactors = FALSE)), stringsAsFactors = FALSE)
+    
+    nn <- round(mean(as.numeric(a$V2), na.rm = TRUE))
+    output$nn <- renderValueBox({ valueBox(nn, "Mean N", color = "red") })
+    
+    fpr <- round(mean(as.numeric(a[["V1"]]), na.rm = TRUE), 2)
     label <- ifelse(input$es == 0, "False Positive Rate", "Power")
     valueBox(fpr, label, color = "red")
   })
