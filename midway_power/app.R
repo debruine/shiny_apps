@@ -1,6 +1,5 @@
 ## app.R ##
 library(shiny)
-library(shinyjs)
 library(shinydashboard)
 
 ## Functions ----
@@ -35,7 +34,6 @@ ui <- dashboardPage(
                  min = 0.1, max = 1.0, value = .8, step = .05)
   ),
   dashboardBody(
-    useShinyjs(),
     tabItems(
       midway_tab
     )
