@@ -62,11 +62,15 @@ server <- function(input, output) {
         fml <- list()
         fml[["main"]] <- formals(func)
         
-        m3 <- .S3methods(func)
-        for (m in m3) {
-            cl <- gsub(paste0(func_text, "."), "", m, fixed = TRUE)
-            func3 <- getS3method(func_text, class =  cl)
-            fml[[cl]] <- formals(func3)
+        if (isS3stdGeneric(func)) {
+            m3 <- tryCatch(.S3methods(func), # ?!?!?!?!?!?
+              error = function(e) return(list()))
+            
+            for (m in m3) {
+                cl <- gsub(paste0(func_text, "."), "", m, fixed = TRUE)
+                func3 <- getS3method(func_text, class =  cl)
+                fml[[cl]] <- formals(func3)
+            }
         }
 
         fml
