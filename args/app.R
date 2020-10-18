@@ -1,6 +1,7 @@
 library(shiny)
 library(shinydashboard)
 library(rlang)
+library(magrittr)
 
 ui <- dashboardPage(
     dashboardHeader(title = "Arguments"),
