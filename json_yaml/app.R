@@ -57,12 +57,16 @@ ui <- dashboardPage(
                    c("text" = "txt",
                      "JSON" = "json",
                      "YAML" = "yaml"),
-                   selected = "txt")
+                   selected = "txt"),
+      HTML("<hr><ul style='margin-left:1px;'><li><a href='https://github.com/debruine/shiny/blob/master/json_yaml/app.R'>App Code</a></li><li><a href='https://www.json2yaml.com/'>Proper JSON/YAML app</a></li></ul>")
     )
   ),
   dashboardBody(
     shinyjs::useShinyjs(),
-    tags$style(HTML(".warning { background-color: #f2f0a2; }")),
+    tags$style(HTML("
+    .warning { background-color: #f2f0a2; }
+    #text { font-family: monospace; }
+    ")),
     
     box(width = 12,
       textAreaInput("text", NULL, "", "100%", "400px"),
@@ -103,7 +107,7 @@ server <- function(input, output, session) {
     debug_msg("file")
     
     path <- input$file$datapath
-    ext <- tools::file_ext(path)
+    ext <- tools::file_ext(path) %>% tolower()
     
     txt <- tryCatch({
       readLines(path) %>% paste(collapse = "\n")
