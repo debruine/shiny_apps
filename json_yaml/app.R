@@ -52,6 +52,7 @@ ui <- dashboardPage(
       
       actionButton("example", "Load Example"),
       actionButton("prettify", "Prettify JSON"),
+      actionButton("minify", "Minify JSON"),
       actionButton("drop_empty", "Drop Empty Values"),
       radioButtons("type", NULL,
                    c("text" = "txt",
@@ -193,6 +194,21 @@ server <- function(input, output, session) {
         
         updateTextAreaInput(session, "text", value = txt)
       }, error = function(e) {})
+    }
+  }, ignoreNULL = TRUE)
+  
+  # . . minify ----
+  observeEvent(input$minify, {
+    debug_msg("minify")
+    if (input$type == "json") {
+      tryCatch({
+        txt <-  jsonlite::minify(input$text) %>%
+          paste(collapse = "")
+        updateTextAreaInput(session, "text", value = txt)
+      }, error = function(e) {
+        shinyjs::addClass('err', 'warning')
+        output$err <- renderText(e.message)
+      })
     }
   }, ignoreNULL = TRUE)
   
