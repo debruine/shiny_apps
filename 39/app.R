@@ -100,7 +100,7 @@ server <- function(input, output, session) {
         mygraph <- graph_from_data_frame( edges, vertices=vertices )
         
         # Control the size of each circle: (use the size column of the vertices data frame)
-        ggraph(mygraph, layout = 'circlepack', weight="size") + 
+        ggraph(mygraph, layout = 'circlepack', weight=size) + 
             geom_node_circle(aes(fill = sample(LETTERS[1:length(lewitt)], 
                                                nrow(vertices), 
                                                replace = T)), 

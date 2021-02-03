@@ -1,0 +1,9 @@
+ul.sidebar-menu {
+  font-size: 1.5em;
+}
+
+#say_hi {
+  background-color: rgb(221, 75, 57);
+  color: white;
+  font-weight: bold;
+}

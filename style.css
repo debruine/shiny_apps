@@ -1,0 +1,16 @@
+body {
+  background-color: #fcfbf7;
+  font: 16px Helvetica;
+  max-width: 60em;
+  padding: 1em;
+  margin: 0 auto;
+}
+
+h1 {
+  color: #7d18c9;
+  text-align: center;
+}
+
+li {
+  margin-bottom: 0.5em;
+}
