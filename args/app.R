@@ -16,7 +16,7 @@ ui <- dashboardPage(
         )
     ),
     dashboardBody(
-        HTML("<p>This app is a demo to test getting the default arguments for a user-input function as inputs. <a href='https://github.com/debruine/shiny/tree/master/args/app.R'>Code for this app</a></p>"),
+        HTML("<p>This app is a demo to test getting the default arguments for a user-input function as inputs. <a href='https://github.com/debruine/shiny_apps/tree/master/args/app.R'>Code for this app</a></p>"),
         fluidRow(
             box(width = 6, uiOutput("arg_input")),
             box(status = "primary", width = 6, htmlOutput("args"))

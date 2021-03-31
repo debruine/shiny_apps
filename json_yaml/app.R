@@ -59,7 +59,7 @@ ui <- dashboardPage(
                      "JSON" = "json",
                      "YAML" = "yaml"),
                    selected = "txt"),
-      HTML("<hr><ul style='margin-left:1px;'><li><a href='https://github.com/debruine/shiny/blob/master/json_yaml/app.R'>App Code</a></li><li><a href='https://www.json2yaml.com/'>Proper JSON/YAML app</a></li></ul>")
+      HTML("<hr><ul style='margin-left:1px;'><li><a href='https://github.com/debruine/shiny_apps/blob/master/json_yaml/app.R'>App Code</a></li><li><a href='https://www.json2yaml.com/'>Proper JSON/YAML app</a></li></ul>")
     )
   ),
   dashboardBody(

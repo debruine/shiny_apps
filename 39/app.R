@@ -25,18 +25,24 @@ ui <- dashboardPage(
     dashboardHeader(title = "Happy Birthday"),
     dashboardSidebar(disable = TRUE),
     dashboardBody(
-        actionButton("spiky_reload", "Reload"),
-        plotOutput("spiky"),
-        sliderInput("n_circles", "Number of Circles", 
-                    min = 1, max = 200, value = 100),
-        plotOutput("circles"),
-        actionButton("circles2_reload", "Reload"),
-        plotOutput("circles2"),
-        sliderInput("n_stripes", "Number of Stripes", 
-                    min = 1, max = 100, value = 30),
-        plotOutput("stripes")
-    ),
-    title = "Happy Birthday"
+        title = "Happy Birthday",
+        tabsetPanel(
+            tabPanel("Spiky",
+                     actionButton("spiky_reload", "Reload"),
+                     plotOutput("spiky")),
+            tabPanel("Circles",
+                     sliderInput("n_circles", "Number of Circles", 
+                                 min = 1, max = 200, value = 100),
+                     plotOutput("circles")),
+            tabPanel("Nested Circles",
+                     actionButton("circles2_reload", "Reload"),
+                     plotOutput("circles2")),
+            tabPanel("Stripes",
+                     sliderInput("n_stripes", "Number of Stripes", 
+                                 min = 1, max = 100, value = 30),
+                     plotOutput("stripes"))
+        )
+    )
 )
 
 # Define server logic ----

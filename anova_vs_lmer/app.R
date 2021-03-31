@@ -68,7 +68,7 @@ ui <- dashboardPage(
         sliderInput("stim_type_sd", "Subject slope (stim type):", 
                     min = 0, max = 2, value = 0.50, step = 0.05)
       ),
-     tags$a(href="https://github.com/debruine/shiny/tree/master/anova_vs_lmer", "Code for this app")
+     tags$a(href="https://github.com/debruine/shiny_apps/tree/master/anova_vs_lmer", "Code for this app")
     )
   ),
   dashboardBody(

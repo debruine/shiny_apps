@@ -82,7 +82,7 @@ ui <- fluidPage(
                        "Words to omit (separate with commas)", 
                        value = omit, 
                        height = "200px"),
-         HTML("Download the <a href='https://github.com/debruine/shiny/tree/master/wordcloud'>app code here<a/>.")
+         HTML("Download the <a href='https://github.com/debruine/shiny_apps/tree/master/wordcloud'>app code here<a/>.")
       ),
       
       # Show a plot of the generated distribution

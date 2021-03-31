@@ -30,7 +30,7 @@ sidebar <- dashboardSidebar(
   actionButton("setting_debug", "Debug", width = "80%"),
   checkboxInput("show_debug", "Debug", value = def$show_debug),
   
-  tags$a("Code on GitHub", href = "https://github.com/debruine/shiny/blob/master/guess/app.R"),
+  tags$a("Code on GitHub", href = "https://github.com/debruine/shiny_apps/blob/master/guess/app.R"),
   h4("Display Options"),
   checkboxInput("show_meanse", "Mean+SE",value = def$show_meanse),
   checkboxInput("show_violin", "Violin Plot",value = def$show_violin),

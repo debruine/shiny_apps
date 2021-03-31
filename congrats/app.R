@@ -33,7 +33,7 @@ ui <- dashboardPage(
                 ),
                 selected = 1
     ),
-    HTML("Download the <a href='https://github.com/debruine/shiny/tree/master/wordcloud'>app code here<a/>.")
+    HTML("Download the <a href='https://github.com/debruine/shiny_apps/tree/master/wordcloud'>app code here<a/>.")
   ),
   dashboardBody(
     plotOutput("wordCloudPlot")
