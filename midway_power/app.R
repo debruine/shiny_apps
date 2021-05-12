@@ -8,8 +8,7 @@ library(shinydashboard)
 
 midway_tab <- tabItem(
   tabName = "midway_tab",
-  p("This app simulates the situation where you run studies and runa preliminary analysis after the first N observations. If the effect size at that point is smaller than the minimum cutoff, you scrap the study. If it is larger, you run a power calculation using this estimated effect size to determine how many more observations to collect to get the specified power for the specified alpha."),
-  p("Set effect size to 0 to calculate the false positive rate."),
+  p("This app simulates the situation where you run studies and run a preliminary analysis after the first N observations. If the effect size at that point is smaller than the minimum cutoff, you scrap the study. If it is larger, you run a power calculation using this estimated effect size to determine how many more observations to collect to get the specified power for the specified alpha. The values below show the power of this strategy for sspecified parameters. Set effect size to 0 to calculate the false positive rate (which is always inflated)."),
   valueBoxOutput("scrapped"),
   valueBoxOutput("nn"),
   valueBoxOutput("fpr"),

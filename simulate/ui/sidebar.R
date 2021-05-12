@@ -2,7 +2,7 @@ sidebar <- dashboardSidebar(
   # https://fontawesome.com/icons?d=gallery&m=free
   sidebarMenu(
     menuItem("Home", tabName = "main_tab", icon = icon("home")),
-    menuItem("Uniform", tabName = "unif_tab", icon = icon("grip-lines")),
+    menuItem("Uniform", tabName = "unif_tab", icon = icon("ruler-horizontal")),
     menuItem("Binomial", tabName = "binom_tab", icon = icon("hand-peace")),
     menuItem("Normal", tabName = "norm_tab", icon = icon("star")),
     menuItem("Poisson", tabName = "pois_tab", icon = icon("fish")),
